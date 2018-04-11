@@ -33,7 +33,8 @@ ENUM_TIMEFRAMES timeFrames_AcoesDayTrade[] = {//PERIOD_M1,
                                               //PERIOD_H12,
                                               PERIOD_D1,
                                               //PERIOD_W1,
-                                              //PERIOD_MN1};
+                                              //PERIOD_MN1
+                                              };
                                    
 ENUM_TIMEFRAMES timeFrames_AcoesSwingTrade[] = {};
 
