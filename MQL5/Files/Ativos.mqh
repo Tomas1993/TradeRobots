@@ -8,31 +8,10 @@
 #property link      "https://www.mql5.com"
 
 //+------------------------------------------------------------------+
-//| defines                                                          |
+//| defines & Includes                                               |
 //+------------------------------------------------------------------+
-
-// #define MacrosHello   "Hello, world!"
-// #define MacrosYear    2010
 
 #include "..\Files\SymbolStruct.mqh"
-
-//+------------------------------------------------------------------+
-//| DLL imports                                                      |
-//+------------------------------------------------------------------+
-
-// #import "user32.dll"
-//   int      SendMessageA(int hWnd,int Msg,int wParam,int lParam);
-// #import "my_expert.dll"
-//   int      ExpertRecalculate(int wParam,int lParam);
-// #import
-
-//+------------------------------------------------------------------+
-//| EX5 imports                                                      |
-//+------------------------------------------------------------------+
-
-// #import "stdlib.ex5"
-//   string ErrorDescription(int error_code);
-// #import
 
 //+------------------------------------------------------------------+
 //|                                                                  |
@@ -41,9 +20,9 @@ void populaAtivosAcoesDayTrade(SymbolStruct &symbolStruct[])
 {  
    addSymbol(symbolStruct, "GRND3", 1, true); 
    addSymbol(symbolStruct, "PETR3", 1, true);
-   addSymbol(symbolStruct, "EZTC3", 1, true);
-   addSymbol(symbolStruct, "KROT3", 1, true);
-   addSymbol(symbolStruct, "ITUB3", 1, true);
+   //addSymbol(symbolStruct, "EZTC3", 1, true);
+   //addSymbol(symbolStruct, "KROT3", 1, true);
+   //addSymbol(symbolStruct, "ITUB3", 1, true);
    //addSymbol(symbolStruct, "BBDC3", 1, true);
    //addSymbol(symbolStruct, "WIZS3", 1, true);
    //addSymbol(symbolStruct, "BBSE3", 1, true);

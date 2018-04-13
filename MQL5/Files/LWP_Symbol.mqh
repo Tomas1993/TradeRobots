@@ -20,10 +20,14 @@
 class LWP_Symbol
 {
    private:
-      SymbolStruct      acoes[CHARTS_MAX];
+      SymbolStruct                  symbolArray[CHARTS_MAX];
+      
+      AGRESSIDADE_OPERACOES         cunning;
+      
+      SYMBOL_GROUP                  symbolGroup;
       
 #ifdef BOLLINGER_BANDS
-      Bollinger_Bands   bollingerBands;
+      Bollinger_Bands_Configuration bollingerBands;
 #endif
    
    protected:
@@ -32,9 +36,16 @@ class LWP_Symbol
       bool checkWetherChartIsSync(string symbolName);
    
    public:
-      LWP_Symbol();
+      LWP_Symbol(AGRESSIDADE_OPERACOES cunning,
+                 SYMBOL_GROUP          symbolGroup);
       
       ~LWP_Symbol();
+      
+      void                    setCunning(AGRESSIDADE_OPERACOES value) { this.cunning = value; }
+      AGRESSIDADE_OPERACOES   getCunning(void) { return this.cunning; }
+      
+      void          setSymbolGroup(SYMBOL_GROUP value) { this.symbolGroup = value; }
+      SYMBOL_GROUP  getSymbolGroup(void) { return this.symbolGroup; }
                            
       void populateAcoesDayTrade(void);
       
@@ -54,7 +65,7 @@ class LWP_Symbol
                                       int             horizontalShift, 
                                       double          standardDeviation);
                                       
-      Bollinger_Bands getBollingerBandsIndicator(void);
+      Bollinger_Bands_Configuration getBollingerBandsIndicator(void);
       
       void openBollingerBandsForDesiredPeriod(void);
 #endif
@@ -63,8 +74,13 @@ class LWP_Symbol
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-LWP_Symbol::LWP_Symbol()
+LWP_Symbol::LWP_Symbol(AGRESSIDADE_OPERACOES cunningInputValue,
+                       SYMBOL_GROUP          symbolGroupInputValue)
 {
+   this.cunning      = cunningInputValue;
+   this.symbolGroup  = symbolGroupInputValue;
+   
+   return;
 }
 
 //+------------------------------------------------------------------+
@@ -79,7 +95,7 @@ LWP_Symbol::~LWP_Symbol()
 //+------------------------------------------------------------------+
 void LWP_Symbol::populateAcoesDayTrade(void)
 {
-   populaAtivosAcoesDayTrade(this.acoes);
+   populaAtivosAcoesDayTrade(this.symbolArray);
    
    return;
 }
@@ -124,23 +140,23 @@ bool LWP_Symbol::checkForSymbolsInMarketWatch(void)
    /// Check for the symbol in the Market Watch ///
    ////////////////////////////////////////////////
    
-   for(int i = 0; i < ArraySize(this.acoes); i++)
+   for(int i = 0; i < ArraySize(this.symbolArray); i++)
    {
-      if(this.acoes[i].permissionToTrade == false)
+      if(this.symbolArray[i].permissionToTrade == false)
       {
          continue;
       }
       
-      if(this.isSymbolInMarketWatch(this.acoes[i].symbolName) == false)
+      if(this.isSymbolInMarketWatch(this.symbolArray[i].symbolName) == false)
       {
-         Print(this.acoes[i].symbolName," could not be found on the server!");
+         Print(this.symbolArray[i].symbolName," could not be found on the server!");
          
          ExpertRemove();
       }
       
       else
       {
-         Comment(this.acoes[i].symbolName," is available and will be analysed!");
+         Comment(this.symbolArray[i].symbolName," is available and will be analysed!");
       }
    }
    
@@ -148,25 +164,25 @@ bool LWP_Symbol::checkForSymbolsInMarketWatch(void)
    /// Check whether the symbol is used more than once ///
    ///////////////////////////////////////////////////////
    
-   if(ArraySize(this.acoes) > 1)
+   if(ArraySize(this.symbolArray) > 1)
    {
-      for(int i = 0; i < (ArraySize(this.acoes) - 1); i++)
+      for(int i = 0; i < (ArraySize(this.symbolArray) - 1); i++)
       {
-         if(this.acoes[i].permissionToTrade == false)
+         if(this.symbolArray[i].permissionToTrade == false)
          { 
             continue;
          }
          
-         for(int j = (i + 1); j < ArraySize(this.acoes); j++)
+         for(int j = (i + 1); j < ArraySize(this.symbolArray); j++)
          {
-            if(this.acoes[i].permissionToTrade == false)
+            if(this.symbolArray[i].permissionToTrade == false)
             { 
                continue;
             }
             
-            if(this.acoes[i].symbolName == this.acoes[j].symbolName)
+            if(this.symbolArray[i].symbolName == this.symbolArray[j].symbolName)
             {
-               Print(this.acoes[i].symbolName," is used more than once!");
+               Print(this.symbolArray[i].symbolName," is used more than once!");
                
                ExpertRemove();
             }
@@ -184,9 +200,9 @@ void LWP_Symbol::openCharts(ENUM_TIMEFRAMES period)
 {
    long openedChartID;
    
-   for(int i = 0; i < ArraySize(this.acoes); i++)
+   for(int i = 0; i < ArraySize(this.symbolArray); i++)
    {
-      string name = this.acoes[i].symbolName;
+      string name = this.symbolArray[i].symbolName;
    
       if(name == NULL)
       {
@@ -199,7 +215,7 @@ void LWP_Symbol::openCharts(ENUM_TIMEFRAMES period)
       {
          this.checkWetherChartIsSync(name);
          
-         this.acoes[i].symbolID = openedChartID;
+         this.symbolArray[i].symbolID = openedChartID;
          
          SymbolSelect(name, 1);
       }
@@ -220,9 +236,9 @@ void LWP_Symbol::openCharts(ENUM_TIMEFRAMES period)
 //+------------------------------------------------------------------+
 void LWP_Symbol::closeAllCharts(void)
 {
-   for(int i = 0; i < ArraySize(this.acoes); i++)
+   for(int i = 0; i < ArraySize(this.symbolArray); i++)
    {   
-      if(ChartClose(this.acoes[i].symbolID))
+      if(ChartClose(this.symbolArray[i].symbolID))
       {         
          //Print("Chart successfully closed!");
       }
@@ -247,10 +263,10 @@ bool LWP_Symbol::changeChartsPeriod(ENUM_TIMEFRAMES period)
    long currentChartID;
    long newChartID;
    
-   for(int i = 0; i < ArraySize(this.acoes); i++)
+   for(int i = 0; i < ArraySize(this.symbolArray); i++)
    {
-      name           = this.acoes[i].symbolName;
-      currentChartID = this.acoes[i].symbolID;
+      name           = this.symbolArray[i].symbolName;
+      currentChartID = this.symbolArray[i].symbolID;
       
       if(name == NULL)
       {
@@ -267,7 +283,7 @@ bool LWP_Symbol::changeChartsPeriod(ENUM_TIMEFRAMES period)
       {
          this.checkWetherChartIsSync(name);
          
-         this.acoes[i].symbolID = newChartID;
+         this.symbolArray[i].symbolID = newChartID;
       }
       
       else
@@ -288,9 +304,9 @@ void LWP_Symbol::getInfoOfEverySymbol(void)
 {
    MqlTick tick;
    
-   for(int i = 0; i < (ArraySize(this.acoes) - 1); i++)
+   for(int i = 0; i < (ArraySize(this.symbolArray) - 1); i++)
    {
-      string name = this.acoes[i].symbolName;
+      string name = this.symbolArray[i].symbolName;
          
       SymbolInfoTick(name, tick);
    
@@ -309,8 +325,6 @@ void LWP_Symbol::getInfoOfEverySymbol(void)
                                                int             horizontalShift, 
                                                double          standardDeviation)
    {
-      CSymbolInfo symbolInfo;
-   
       this.bollingerBands.movingAverage_Period  = movingAverage_Period;
       this.bollingerBands.horizontalShift       = horizontalShift;
       
@@ -330,9 +344,9 @@ void LWP_Symbol::getInfoOfEverySymbol(void)
       /// Set indicator handles for every active ///
       //////////////////////////////////////////////
       
-      for(int i = 0; i < ArraySize(this.acoes); i++)
+      for(int i = 0; i < ArraySize(this.symbolArray); i++)
       {
-         string name = this.acoes[i].symbolName;
+         string name = this.symbolArray[i].symbolName;
       
          if(name == NULL)
          {
@@ -341,59 +355,13 @@ void LWP_Symbol::getInfoOfEverySymbol(void)
          
          this.checkWetherChartIsSync(name);
        
-         //////////////////////////////////
-         /// First, based on High Price ///
-         //////////////////////////////////
-         this.acoes[i].BB_Handle_High = iBands(name,
-                                               period,
-                                               movingAverage_Period,
-                                               horizontalShift,
-                                               standardDeviation,
-                                               PRICE_HIGH);
-                                               
-         if(this.acoes[i].BB_Handle_High < 0)
-         {
-            Print("Failed to create a handle for Bollinger Bands based on High prices for ", name, " . Handle=",INVALID_HANDLE,
-                  "\n Error=",GetLastError());
+         this.symbolArray[i].bbClass.setHandlers(name,
+                                                 period,
+                                                 movingAverage_Period,
+                                                 horizontalShift,
+                                                 standardDeviation);
          
-            ExpertRemove();
-         }
-         
-         //////////////////////////////////
-         /// Second, based on Low Price ///
-         //////////////////////////////////
-         this.acoes[i].BB_Handle_Low = iBands(name,
-                                              period,
-                                              movingAverage_Period,
-                                              horizontalShift,
-                                              standardDeviation,
-                                              PRICE_LOW);
-                                               
-         if(this.acoes[i].BB_Handle_Low < 0)
-         {
-            Print("Failed to create a handle for Bollinger Bands based on Low prices for ", name, " . Handle=",INVALID_HANDLE,
-                  "\n Error=",GetLastError());
-         
-            ExpertRemove();
-         }
-         
-         // Calculate data for the Lot
-         // Set the name of the symbol for which the information will be obtained
-         symbolInfo.Name(name);
-         
-         // Minimum and maximum volume size in trading operations
-         this.acoes[i].BB_MinLot = symbolInfo.LotsMin();
-         this.acoes[i].BB_MaxLot = symbolInfo.LotsMax();
-         
-         // Point value
-         this.acoes[i].BB_Point = symbolInfo.Point();
-         
-         // Contract size
-         this.acoes[i].BB_ContractSize = symbolInfo.ContractSize();
-         
-         // Set some additional parameters
-         this.acoes[i].BB_DealNumber   = 0;
-         this.acoes[i].BB_Locked_bar_time = 0;
+         this.symbolArray[i].bbClass.setInfoFromChart(name);
       }
       
       return;
@@ -402,7 +370,7 @@ void LWP_Symbol::getInfoOfEverySymbol(void)
    //+------------------------------------------------------------------+
    //|                                                                  |
    //+------------------------------------------------------------------+
-   Bollinger_Bands LWP_Symbol::getBollingerBandsIndicator(void)
+   Bollinger_Bands_Configuration LWP_Symbol::getBollingerBandsIndicator(void)
    {
       return this.bollingerBands;
    }

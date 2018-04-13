@@ -12,43 +12,26 @@
 //+------------------------------------------------------------------+
 
 #include "Configs.mqh"
+#include "..\Files\Indicadores\BollingerBands.mqh"
 
 struct SymbolStruct
 {
-   string   symbolName;
+   string            symbolName;
    
-   long     symbolID;
+   long              symbolID;
    
-   uchar    symbolWeight;
+   uchar             symbolWeight;
    
-   bool     permissionToTrade;
+   bool              permissionToTrade;
    
 #ifdef BOLLINGER_BANDS
-   int      BB_Handle_High;
-   int      BB_Handle_Low;
-   
-   double   BB_MinLot;
-   double   BB_MaxLot;
-   double   BB_Point;
-   double   BB_ContractSize;
-   
-   uint     BB_DealNumber;
-   datetime BB_Locked_bar_time;
+   Bollinger_Bands   bbClass;
 #endif
-};
-
-struct Bollinger_Bands
-{
-   uint              movingAverage_Period;
-   
-   int               horizontalShift;
-   
-   double            standardDeviation;
 };
 
 union Indicators
 {
-   Bollinger_Bands   bollinger_bands;
+   Bollinger_Bands_Configuration   bollinger_bands;
 };
 
 
