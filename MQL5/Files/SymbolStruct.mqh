@@ -29,11 +29,4 @@ struct SymbolStruct
 #endif
 };
 
-union Indicators
-{
-   Bollinger_Bands_Configuration   bollinger_bands;
-};
-
-
-
 //+------------------------------------------------------------------+
