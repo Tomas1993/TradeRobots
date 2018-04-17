@@ -13,14 +13,7 @@
 
 #include <Trade\SymbolInfo.mqh>
 
-struct Bollinger_Bands_Configuration
-{
-   uint              movingAverage_Period;
-   
-   int               horizontalShift;
-   
-   double            standardDeviation;
-};
+#include "..\Configs.mqh"
 
 class Bollinger_Bands
 {
@@ -45,7 +38,13 @@ class Bollinger_Bands
                            int                 bands_shift,       // horizontal shift of the indicator 
                            double              deviation);        // number of standard deviations     
                            
-      void     setInfoFromChart(string         symbol);                     
+      void     setInfoFromChart(string         symbol);          
+      
+      void     openBollingerBands(string           _symbol,
+                                  ENUM_TIMEFRAMES  _period,
+                                  uint             _movingAverage_Period, 
+                                  int              _horizontalShift, 
+                                  double           _standardDeviation);           
 };
 
 //+------------------------------------------------------------------+
@@ -123,5 +122,23 @@ void Bollinger_Bands::setInfoFromChart(string symbol)
 
    return;
 }
-                                  
+
 //+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+void Bollinger_Bands::openBollingerBands(string           _symbol,
+                                         ENUM_TIMEFRAMES  _period,
+                                         uint             _movingAverage_Period, 
+                                         int              _horizontalShift, 
+                                         double           _standardDeviation)
+{
+   this.setHandlers(_symbol,
+                    _period,
+                    _movingAverage_Period,
+                    _horizontalShift,
+                    _standardDeviation);
+
+   this.setInfoFromChart(_symbol);
+
+   return;
+}

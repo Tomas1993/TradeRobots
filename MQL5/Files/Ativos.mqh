@@ -86,5 +86,3 @@ void addSymbol(SymbolStruct   &symbolStruct[],
    
    return;
 }
-
-//+------------------------------------------------------------------+
