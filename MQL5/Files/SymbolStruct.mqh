@@ -24,5 +24,5 @@ struct SymbolStruct
    
    bool              permissionToTrade;
    
-   Bollinger_Bands   bbClass[NUM_TIMEFRAMES];
+   Bollinger_Bands   BollingerBands[NUM_TIMEFRAMES];
 };

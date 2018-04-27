@@ -11,8 +11,6 @@
 //| defines                                                          |
 //+------------------------------------------------------------------+
 
-#include "..\SymbolStruct.mqh"
-
 class Bollinger_Bands_Configuration
 {
    private:
@@ -24,7 +22,7 @@ class Bollinger_Bands_Configuration
    
    protected:
    
-   public:      
+   public:   
       uint     getMovingAveragePeriod(void)  { return this.movingAverage_Period; }
       
       int      getHorizontalShift(void)      { return this.horizontalShift; }
@@ -53,7 +51,7 @@ void Bollinger_Bands_Configuration::setBollingerBandsIndicator(uint            _
    
    else
    {
-      Print("The standard deviation of Bollinger Bands must be more than 0.0");
+      Comment("The standard deviation of Bollinger Bands must be more than 0.0");
       
       ExpertRemove();
    }
