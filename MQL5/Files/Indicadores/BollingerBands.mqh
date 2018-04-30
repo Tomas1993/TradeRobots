@@ -39,21 +39,21 @@ class Bollinger_Bands
       double   lowerBandHigh[];
       double   lowerBandLow[];
       
-   protected:
-   
-   public:
-      Bollinger_Bands_Configuration BollingerBandsConfigs;
+      void     setInfoFromChart(string         symbol);
    
       void     setHandlers(string              symbol,            // symbol name 
                            ENUM_TIMEFRAMES     period,            // period 
                            int                 bands_period,      // period for average line calculation 
                            int                 bands_shift,       // horizontal shift of the indicator 
-                           double              deviation);        // number of standard deviations     
-                           
-      void     setInfoFromChart(string         symbol);          
+                           double              deviation);        // number of standard deviations 
       
-      void     openBollingerBands(string           _symbol,
-                                  ENUM_TIMEFRAMES  _period);     
+   protected:
+   
+   public:
+      Bollinger_Bands_Configuration BollingerBandsConfigs;
+   
+      void     openIndicator(string           _symbol,
+                             ENUM_TIMEFRAMES  _period);     
                                   
       void     getFeedBack(string           _symbol,
                            ENUM_TIMEFRAMES  _period);
@@ -138,8 +138,8 @@ void Bollinger_Bands::setInfoFromChart(string symbol)
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-void Bollinger_Bands::openBollingerBands(string           _symbol,
-                                         ENUM_TIMEFRAMES  _period)
+void Bollinger_Bands::openIndicator(string           _symbol,
+                                    ENUM_TIMEFRAMES  _period)
 {
    this.setHandlers(_symbol,
                     _period,

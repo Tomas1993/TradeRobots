@@ -38,7 +38,7 @@ ENUM_TIMEFRAMES timeFrames_Opcoes[] = {};
 //| Indicators used by the robot                                     |
 //+------------------------------------------------------------------+
 
-ENUM_INDICADORES_ACOMPANHAMENTO_TENDENCIA indicadores_AcompanhamentoTendencia[] = {/*BANDAS_DE_BOLLINGER,*/
+ENUM_INDICADORES_ACOMPANHAMENTO_TENDENCIA indicadores_AcompanhamentoTendencia[] = {BANDAS_DE_BOLLINGER,
                                                                                    MOVING_AVERAGE};
 
 ENUM_INDICADORES_CONTRA_TENDENCIA         indicadores_ContraTendencia[] = {};
