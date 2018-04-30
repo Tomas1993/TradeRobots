@@ -164,6 +164,7 @@ void Bollinger_Bands::getFeedBack(string           _symbol,
    
    double Ask_price;
    double Bid_price;
+   double OrderLot = 0;
    
    ///////////////////////////////////////////////////////////////////
    // Upper band of Bollinger Bands calculated based on High prices //
@@ -260,10 +261,18 @@ void Bollinger_Bands::getFeedBack(string           _symbol,
          {
             if(!_trade.PositionClose(_symbol))
             {
+               Print("Failed to close the Buy ", _symbol, " position. Code = ", _trade.ResultRetcode(),
+                     " (", _trade.ResultRetcodeDescription(), ")");
+                  
+               return;
             }
             
             else
             {
+               Print("The Buy ", _symbol, " position closed successfully. Code = ", _trade.ResultRetcode(),
+                     " (", _trade.ResultRetcodeDescription(), ")");
+                  
+               return;
             }
          }
       }
@@ -277,12 +286,119 @@ void Bollinger_Bands::getFeedBack(string           _symbol,
          {
             if(!_trade.PositionClose(_symbol))
             {
+               Print("Failed to close the Sell ", _symbol, " position. Code = ", _trade.ResultRetcode(),
+                     " (", _trade.ResultRetcodeDescription(), ")");
+               
+               return; 
             }
             
             else
             {
+               Print("The Sell ", _symbol, " position closed successfully. Code = ", _trade.ResultRetcode(),
+                     " (", _trade.ResultRetcodeDescription(), ")");
+                  
+               return; 
             }
          }
+      }
+   }
+   
+   //////////////////////////////////////
+   // Restrictions on position opening //
+   //////////////////////////////////////
+   
+   // Price is in the position closing area
+   if((Bid_price >= this.lowerBandHigh[0]) && (Ask_price <= this.upperBandLow[0]))
+   {
+      this.dealNumber = 0;
+      
+      return;
+   }
+   
+   // A position has already been opened on the current bar
+   if(this.locked_bar_time >= this.timeArray[0])
+   { 
+      return;
+   }
+   
+   ////////////////////////
+   // Opening a Position //
+   ////////////////////////
+   _symbolInfo.Name(_symbol);
+   _symbolInfo.RefreshRates();
+   
+   Ask_price = _symbolInfo.Ask();
+   Bid_price = _symbolInfo.Bid();
+   
+   ///////////////
+   // For a Buy //
+   ///////////////
+   if(Ask_price <= this.lowerBandLow[0])
+   {
+      // Determine the current deal number 
+      this.dealNumber++;
+      
+      // Calculate the lot
+      OrderLot = 100;
+      
+      // Execute the Deal
+      if(!_trade.Buy(OrderLot, 
+                     _symbol))
+      {
+         // If the Buy is unsuccessful, decrease the deal number by 1
+         this.dealNumber--;
+            
+         Print("The Buy ", _symbol, " has been unsuccessful. Code = ", _trade.ResultRetcode(),
+               " (", _trade.ResultRetcodeDescription(), ")");
+               
+         return;
+      }
+      
+      else
+      {
+         // Save the current time to block the bar for trading
+         this.locked_bar_time = TimeCurrent();
+         
+         Print("The Buy ", _symbol, " has been successful. Code = ", _trade.ResultRetcode(),
+               " (", _trade.ResultRetcodeDescription(), ")");
+         
+         return;
+      }
+   }
+   
+   ////////////////
+   // For a Sell //
+   ////////////////
+   if(Bid_price >= this.upperBandHigh[0])
+   {
+      // Determine the current deal number 
+      this.dealNumber++;
+      
+      // Calculate the lot
+      OrderLot = 100;
+      
+      // Execute the Deal
+      if(!_trade.Sell(OrderLot, 
+                      _symbol))
+      {
+         // If the Sell is unsuccessful, decrease the deal number by 1
+         this.dealNumber--;
+            
+         Print("The Sell ", _symbol, " has been unsuccessful. Code = ", _trade.ResultRetcode(),
+               " (", _trade.ResultRetcodeDescription(), ")");
+               
+         return;
+      }
+      
+      else
+      {
+         // Save the current time to block the bar for trading
+         this.locked_bar_time = TimeCurrent();
+         
+         Print("The Buy ", _symbol, " has been successful. Code = ", _trade.ResultRetcode(),
+               " (", _trade.ResultRetcodeDescription(), ")");
+         
+         return;
       }
    }
    

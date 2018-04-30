@@ -17,8 +17,6 @@ class LWP_EAConfig
       float             brokerage_rate;
       
       long              leverage;
-      
-      ENUM_TIMEFRAMES   timeFramesStateMachine;
    
    protected:
    
@@ -32,9 +30,6 @@ class LWP_EAConfig
       
       void              setLeverage(long inputValue)                          { this.leverage = inputValue; }
       long              getLeverage(void)                                     { return this.leverage; }
-      
-      void              setTimeFramesStateMachine(ENUM_TIMEFRAMES inputValue) { this.timeFramesStateMachine = inputValue; }
-      ENUM_TIMEFRAMES   getTimeFramesStateMachine(void)                       { return this.timeFramesStateMachine; }
 };
 
 //+------------------------------------------------------------------+
