@@ -13,6 +13,7 @@
 
 #include "Configs.mqh"
 #include "..\Files\Indicadores\BollingerBands.mqh"
+#include "..\Files\Indicadores\MovingAverage.mqh"
 
 struct SymbolStruct
 {
@@ -25,4 +26,6 @@ struct SymbolStruct
    bool              permissionToTrade;
    
    Bollinger_Bands   BollingerBands[NUM_TIMEFRAMES];
+   
+   Moving_Average    MovingAverage[NUM_TIMEFRAMES];
 };
