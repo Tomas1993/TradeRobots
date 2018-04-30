@@ -339,7 +339,7 @@ void Bollinger_Bands::getFeedBack(string           _symbol,
       this.dealNumber++;
       
       // Calculate the lot
-      OrderLot = 100;
+      OrderLot = this.minLot;
       
       // Execute the Deal
       if(!_trade.Buy(OrderLot, 
@@ -375,7 +375,7 @@ void Bollinger_Bands::getFeedBack(string           _symbol,
       this.dealNumber++;
       
       // Calculate the lot
-      OrderLot = 100;
+      OrderLot = this.minLot;
       
       // Execute the Deal
       if(!_trade.Sell(OrderLot, 
