@@ -18,20 +18,20 @@
 //+------------------------------------------------------------------+
 void populaAtivosAcoesDayTrade(SymbolStruct &symbolStruct[])
 {  
-   addSymbol(symbolStruct, "GRND3", 1, true); 
-   addSymbol(symbolStruct, "PETR3", 1, true);
-   //addSymbol(symbolStruct, "EZTC3", 1, true);
-   //addSymbol(symbolStruct, "KROT3", 1, true);
-   //addSymbol(symbolStruct, "ITUB3", 1, true);
-   //addSymbol(symbolStruct, "BBDC3", 1, true);
-   //addSymbol(symbolStruct, "WIZS3", 1, true);
-   //addSymbol(symbolStruct, "BBSE3", 1, true);
-   //addSymbol(symbolStruct, "EGIE3", 1, true);
-   //addSymbol(symbolStruct, "PSSA3", 1, true);
-   //addSymbol(symbolStruct, "MDIA3", 1, true);
-   //addSymbol(symbolStruct, "CIEL3", 1, true);
-   //addSymbol(symbolStruct, "ESTC3", 1, true);
-   //addSymbol(symbolStruct, "ODPV3", 1, true);
+   addSymbol(symbolStruct, "GRND3", 1); 
+   addSymbol(symbolStruct, "PETR3", 1);
+   //addSymbol(symbolStruct, "EZTC3", 1);
+   //addSymbol(symbolStruct, "KROT3", 1);
+   //addSymbol(symbolStruct, "ITUB3", 1);
+   //addSymbol(symbolStruct, "BBDC3", 1);
+   //addSymbol(symbolStruct, "WIZS3", 1);
+   //addSymbol(symbolStruct, "BBSE3", 1);
+   //addSymbol(symbolStruct, "EGIE3", 1);
+   //addSymbol(symbolStruct, "PSSA3", 1);
+   //addSymbol(symbolStruct, "MDIA3", 1);
+   //addSymbol(symbolStruct, "CIEL3", 1);
+   //addSymbol(symbolStruct, "ESTC3", 1);
+   //addSymbol(symbolStruct, "ODPV3", 1);
     
    return;
 }
@@ -73,14 +73,12 @@ void populaAtivosOpcoes(SymbolStruct &symbolStruct[])
 //+------------------------------------------------------------------+
 void addSymbol(SymbolStruct   &symbolStruct[],
                string         nome,
-               uchar          peso,
-               bool           permissaoTrade)
+               uchar          peso)
 {
    static short posicao = 0;
    
    symbolStruct[posicao].symbolName          = nome;
    symbolStruct[posicao].symbolWeight        = peso;
-   symbolStruct[posicao].permissionToTrade   = permissaoTrade;
    
    posicao++;
    

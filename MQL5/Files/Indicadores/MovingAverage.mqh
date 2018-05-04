@@ -25,17 +25,12 @@ class Moving_Average
       int      handleMediumPeriod;
       int      handleLongPeriod;
       
-      double   minLot;
-      double   maxLot;
-      double   point;
-      double   contractSize;
-      
-      uint     dealNumber;
+      double   shortPeriodArray[];
+      double   mediumPeriodArray[];
+      double   longPeriodArray[];
       
       datetime locked_bar_time;
       datetime timeArray[];
-   
-      void              setInfoFromChart(string _symbol);
       
       void              setHandlers(string               _symbol,
                                     ENUM_TIMEFRAMES      _period,       
@@ -45,6 +40,10 @@ class Moving_Average
                                     int                  _Shift,
                                     ENUM_MA_METHOD       _method,
                                     ENUM_APPLIED_PRICE   _applied_price);
+                                    
+      void              sortIndicators(string           _symbol,
+                                       ENUM_TIMEFRAMES  _period,
+                                       int              _amountCopy);                              
       
    protected:
    
@@ -53,6 +52,9 @@ class Moving_Average
       
       void              openIndicator(string           _symbol,
                                       ENUM_TIMEFRAMES  _period);
+                                      
+      void              getFeedBack(string           _symbol,
+                                    ENUM_TIMEFRAMES  _period);                                   
 };
 
 //+------------------------------------------------------------------+
@@ -127,34 +129,6 @@ void Moving_Average::setHandlers(string               _symbol,
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-void Moving_Average::setInfoFromChart(string _symbol)
-{
-   CSymbolInfo    _symbolInfo;
-
-   // Calculate data for the Lot
-   // Set the name of the symbol for which the information will be obtained
-   _symbolInfo.Name(_symbol);
-   
-   // Minimum and maximum volume size in trading operations
-   this.minLot = _symbolInfo.LotsMin();
-   this.maxLot = _symbolInfo.LotsMax();
-   
-   // Point value
-   this.point = _symbolInfo.Point();
-   
-   // Contract size
-   this.contractSize = _symbolInfo.ContractSize();
-   
-   // Set some additional parameters
-   this.dealNumber      = 0;
-   this.locked_bar_time = 0;
-
-   return;
-}
-
-//+------------------------------------------------------------------+
-//|                                                                  |
-//+------------------------------------------------------------------+
 void Moving_Average::openIndicator(string           _symbol,
                                    ENUM_TIMEFRAMES  _period)
 {
@@ -167,7 +141,183 @@ void Moving_Average::openIndicator(string           _symbol,
                     this.MovingAverageConfigs.getMethod(),
                     this.MovingAverageConfigs.getAppliedPrice());
 
-   this.setInfoFromChart(_symbol);
+   // Set some additional parameters
+   this.locked_bar_time = 0;
 
+   return;
+}
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+void Moving_Average::sortIndicators(string           _symbol,
+                                    ENUM_TIMEFRAMES  _period,
+                                    int              _amountCopy)
+{
+   ////////////////////////////////////////////////
+   // Sort the price of the shorter MA downwards // 
+   ////////////////////////////////////////////////
+   CopyBuffer(this.handleShortPeriod,
+              0,
+              this.MovingAverageConfigs.getShift(),
+              _amountCopy,
+              this.shortPeriodArray);
+              
+   ArraySetAsSeries(this.shortPeriodArray,
+                    true);           
+   
+   ///////////////////////////////////////////////
+   // Sort the price of the medium MA downwards // 
+   ///////////////////////////////////////////////
+   CopyBuffer(this.handleMediumPeriod,
+              0,
+              this.MovingAverageConfigs.getShift(),
+              _amountCopy,
+              this.mediumPeriodArray);
+   
+   ArraySetAsSeries(this.mediumPeriodArray,
+                    true);
+   
+   ///////////////////////////////////////////////
+   // Sort the price of the longer MA downwards // 
+   ///////////////////////////////////////////////
+   CopyBuffer(this.handleLongPeriod,
+              0,
+              this.MovingAverageConfigs.getShift(),
+              _amountCopy,
+              this.longPeriodArray);
+   
+   ArraySetAsSeries(this.longPeriodArray,
+                    true);      
+                    
+   /////////////////////////////////////
+   // Opening time of the current bar //
+   ///////////////////////////////////// 
+   if(CopyTime(_symbol,
+               _period,
+               0,
+               _amountCopy,
+               this.timeArray) <= 0)
+   {
+      return;  // terminate the current FeedBack
+   }
+   
+   ArraySetAsSeries(this.timeArray,
+                    true);                          
+              
+   return;
+}
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+void Moving_Average::getFeedBack(string           _symbol,
+                                 ENUM_TIMEFRAMES  _period)
+{
+   CSymbolInfo    _symbolInfo;
+   CPositionInfo  _positionInfo;
+   CTrade         _trade;
+   
+   double Ask_price;
+   double Bid_price;
+   double OrderLot = 0;
+   
+   this.sortIndicators(_symbol,
+                       _period,
+                       3);
+   
+   //////////////////////////////////////
+   // Restrictions on position opening //
+   //////////////////////////////////////
+   
+   // A position has already been opened on the current bar
+   if(this.locked_bar_time >= this.timeArray[0])
+   { 
+      return;
+   }
+   
+   ////////////////////////
+   // Opening a Position //
+   ////////////////////////
+   _symbolInfo.Name(_symbol);
+   _symbolInfo.RefreshRates();
+   
+   Ask_price = _symbolInfo.Ask();
+   Bid_price = _symbolInfo.Bid();
+   
+   //////////////////////////////
+   // Check for a Golden Cross //
+   //////////////////////////////
+   if((this.shortPeriodArray[0] > this.longPeriodArray[0]) && 
+      (this.shortPeriodArray[1] < this.longPeriodArray[1]))
+   {
+      // Determine the current deal number 
+      this.dealNumber++;
+      
+      // Calculate the lot
+      OrderLot = this.minLot;
+      
+      // Execute the Deal
+      if(!_trade.Buy(OrderLot, 
+                     _symbol))
+      {
+         // If the Buy is unsuccessful, decrease the deal number by 1
+         this.dealNumber--;
+            
+         Print("The Buy ", _symbol, " has been unsuccessful. Code = ", _trade.ResultRetcode(),
+               " (", _trade.ResultRetcodeDescription(), ")");
+               
+         return;
+      }
+      
+      else
+      {
+         // Save the current time to block the bar for trading
+         this.locked_bar_time = TimeCurrent();
+         
+         Print("The Buy ", _symbol, " has been successful. Code = ", _trade.ResultRetcode(),
+               " (", _trade.ResultRetcodeDescription(), ")");
+         
+         return;
+      }
+   }
+   
+   /////////////////////////////
+   // Check for a Death Cross //
+   /////////////////////////////
+   if((this.shortPeriodArray[0] < this.longPeriodArray[0]) && 
+      (this.shortPeriodArray[1] > this.longPeriodArray[1]))
+   {
+      // Determine the current deal number 
+      this.dealNumber++;
+      
+      // Calculate the lot
+      OrderLot = this.minLot;
+      
+      // Execute the Deal
+      if(!_trade.Sell(OrderLot, 
+                      _symbol))
+      {
+         // If the Sell is unsuccessful, decrease the deal number by 1
+         this.dealNumber--;
+            
+         Print("The Sell ", _symbol, " has been unsuccessful. Code = ", _trade.ResultRetcode(),
+               " (", _trade.ResultRetcodeDescription(), ")");
+               
+         return;
+      }
+      
+      else
+      {
+         // Save the current time to block the bar for trading
+         this.locked_bar_time = TimeCurrent();
+         
+         Print("The Buy ", _symbol, " has been successful. Code = ", _trade.ResultRetcode(),
+               " (", _trade.ResultRetcodeDescription(), ")");
+         
+         return;
+      }
+   }
+   
    return;
 }

@@ -24,13 +24,6 @@ class Bollinger_Bands
       int      handle_High;
       int      handle_Low;
       
-      double   minLot;
-      double   maxLot;
-      double   point;
-      double   contractSize;
-      
-      uint     dealNumber;
-      
       datetime locked_bar_time;
       datetime timeArray[];
       
@@ -39,13 +32,15 @@ class Bollinger_Bands
       double   lowerBandHigh[];
       double   lowerBandLow[];
       
-      void     setInfoFromChart(string         symbol);
-   
       void     setHandlers(string              symbol,            // symbol name 
                            ENUM_TIMEFRAMES     period,            // period 
                            int                 bands_period,      // period for average line calculation 
                            int                 bands_shift,       // horizontal shift of the indicator 
                            double              deviation);        // number of standard deviations 
+                           
+      void     sortIndicators(string           _symbol,
+                              ENUM_TIMEFRAMES  _period,
+                              int              _amountCopy);                        
       
    protected:
    
@@ -110,34 +105,6 @@ void Bollinger_Bands::setHandlers(string              symbol,
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-void Bollinger_Bands::setInfoFromChart(string symbol)
-{
-   CSymbolInfo    _symbolInfo;
-
-   // Calculate data for the Lot
-   // Set the name of the symbol for which the information will be obtained
-   _symbolInfo.Name(symbol);
-   
-   // Minimum and maximum volume size in trading operations
-   this.minLot = _symbolInfo.LotsMin();
-   this.maxLot = _symbolInfo.LotsMax();
-   
-   // Point value
-   this.point = _symbolInfo.Point();
-   
-   // Contract size
-   this.contractSize = _symbolInfo.ContractSize();
-   
-   // Set some additional parameters
-   this.dealNumber      = 0;
-   this.locked_bar_time = 0;
-
-   return;
-}
-
-//+------------------------------------------------------------------+
-//|                                                                  |
-//+------------------------------------------------------------------+
 void Bollinger_Bands::openIndicator(string           _symbol,
                                     ENUM_TIMEFRAMES  _period)
 {
@@ -147,7 +114,93 @@ void Bollinger_Bands::openIndicator(string           _symbol,
                     this.BollingerBandsConfigs.getHorizontalShift(),
                     this.BollingerBandsConfigs.getStandardDeviation());
 
-   this.setInfoFromChart(_symbol);
+   // Set some additional parameters
+   this.locked_bar_time = 0;
+
+   return;
+}
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+void Bollinger_Bands::sortIndicators(string           _symbol,
+                                     ENUM_TIMEFRAMES  _period,
+                                     int              _amountCopy)
+{
+   ///////////////////////////////////////////////////////////////////
+   // Upper band of Bollinger Bands calculated based on High prices //
+   ///////////////////////////////////////////////////////////////////
+   if(CopyBuffer(this.handle_High,
+                 UPPER_BAND,
+                 this.BollingerBandsConfigs.getHorizontalShift(),
+                 _amountCopy,
+                 this.upperBandHigh) <= 0)
+   {
+      return;  // terminate the current FeedBack
+   }
+   
+   ArraySetAsSeries(this.upperBandHigh,
+                    true);
+   
+   //////////////////////////////////////////////////////
+   // Lower band of BB calculated based on High prices //
+   //////////////////////////////////////////////////////
+   if(CopyBuffer(this.handle_High,
+                 LOWER_BAND,
+                 this.BollingerBandsConfigs.getHorizontalShift(),
+                 _amountCopy,
+                 this.lowerBandHigh) <= 0)
+   {
+      return;  // terminate the current FeedBack
+   }
+   
+   ArraySetAsSeries(this.lowerBandHigh,
+                    true);
+                    
+   /////////////////////////////////////////////////////
+   // Upper band of BB calculated based on Low prices //
+   /////////////////////////////////////////////////////
+   if(CopyBuffer(this.handle_Low,
+                 UPPER_BAND,
+                 this.BollingerBandsConfigs.getHorizontalShift(),
+                 _amountCopy,
+                 this.upperBandLow) <= 0)
+   {
+      return;  // terminate the current FeedBack
+   }
+   
+   ArraySetAsSeries(this.upperBandLow,
+                    true);
+   
+   /////////////////////////////////////////////////////
+   // Lower band of BB calculated based on Low prices //
+   /////////////////////////////////////////////////////
+   if(CopyBuffer(this.handle_Low,
+                 LOWER_BAND,
+                 this.BollingerBandsConfigs.getHorizontalShift(),
+                 _amountCopy,
+                 this.lowerBandLow) <= 0)
+   {
+      return;  // terminate the current FeedBack
+   }
+   
+   ArraySetAsSeries(this.lowerBandLow,
+                    true);
+                    
+   /////////////////////////////////////
+   // Opening time of the current bar //
+   ///////////////////////////////////// 
+   if(CopyTime(_symbol,
+               _period,
+               0,
+               _amountCopy,
+               this.timeArray) <= 0)
+   {
+      return;  // terminate the current FeedBack
+   }
+   
+   ArraySetAsSeries(this.timeArray,
+                    true);
 
    return;
 }
@@ -166,81 +219,10 @@ void Bollinger_Bands::getFeedBack(string           _symbol,
    double Bid_price;
    double OrderLot = 0;
    
-   ///////////////////////////////////////////////////////////////////
-   // Upper band of Bollinger Bands calculated based on High prices //
-   ///////////////////////////////////////////////////////////////////
-   if(CopyBuffer(this.handle_High,
-                 UPPER_BAND,
-                 this.BollingerBandsConfigs.getHorizontalShift(),
-                 1,
-                 this.upperBandHigh) <= 0)
-   {
-      return;  // terminate the current FeedBack
-   }
+   this.sortIndicators(_symbol,
+                       _period,
+                       1);
    
-   ArraySetAsSeries(this.upperBandHigh,
-                    true);
-   
-   //////////////////////////////////////////////////////
-   // Lower band of BB calculated based on High prices //
-   //////////////////////////////////////////////////////
-   if(CopyBuffer(this.handle_High,
-                 LOWER_BAND,
-                 this.BollingerBandsConfigs.getHorizontalShift(),
-                 1,
-                 this.lowerBandHigh) <= 0)
-   {
-      return;  // terminate the current FeedBack
-   }
-   
-   ArraySetAsSeries(this.lowerBandHigh,
-                    true);
-                    
-   /////////////////////////////////////////////////////
-   // Upper band of BB calculated based on Low prices //
-   /////////////////////////////////////////////////////
-   if(CopyBuffer(this.handle_Low,
-                 UPPER_BAND,
-                 this.BollingerBandsConfigs.getHorizontalShift(),
-                 1,
-                 this.upperBandLow) <= 0)
-   {
-      return;  // terminate the current FeedBack
-   }
-   
-   ArraySetAsSeries(this.upperBandLow,
-                    true);
-   
-   /////////////////////////////////////////////////////
-   // Lower band of BB calculated based on Low prices //
-   /////////////////////////////////////////////////////
-   if(CopyBuffer(this.handle_Low,
-                 LOWER_BAND,
-                 this.BollingerBandsConfigs.getHorizontalShift(),
-                 1,
-                 this.lowerBandLow) <= 0)
-   {
-      return;  // terminate the current FeedBack
-   }
-   
-   ArraySetAsSeries(this.lowerBandLow,
-                    true);
-
-   /////////////////////////////////////
-   // Opening time of the current bar //
-   ///////////////////////////////////// 
-   if(CopyTime(_symbol,
-               _period,
-               0,
-               1,
-               this.timeArray) <= 0)
-   {
-      return;  // terminate the current FeedBack
-   }
-   
-   ArraySetAsSeries(this.timeArray,
-                    true);         
-
    /////////////////////////
    // Closing a Position ///
    /////////////////////////

@@ -23,9 +23,52 @@ struct SymbolStruct
    
    uchar             symbolWeight;
    
-   bool              permissionToTrade;
+   double            minLot;
+   double            maxLot;
+   double            point;
+   double            contractSize;
+   
+   uint              dealNumber;
    
    Bollinger_Bands   BollingerBands[NUM_TIMEFRAMES];
    
    Moving_Average    MovingAverage[NUM_TIMEFRAMES];
+   
+   void              setInfoFromChart(void);
+   
+   void              executeDeal();
 };
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+void SymbolStruct::setInfoFromChart(void)
+{
+   CSymbolInfo    _symbolInfo;
+   
+   // Set the name of the symbol for which the information will be obtained
+   _symbolInfo.Name(this.symbolName);
+
+   // Minimum and maximum volume size in trading operations
+   this.minLot       = _symbolInfo.LotsMin();
+   this.maxLot       = _symbolInfo.LotsMax();
+   
+   // Point value
+   this.point        = _symbolInfo.Point();
+   
+   // Contract size
+   this.contractSize = _symbolInfo.ContractSize();
+   
+   // Set some additional parameters
+   this.dealNumber   = 0;
+
+   return;
+}
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+void SymbolStruct::executeDeal(void)
+{
+   return;
+}
