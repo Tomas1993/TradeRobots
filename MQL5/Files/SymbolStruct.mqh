@@ -32,6 +32,8 @@ struct SymbolStruct
    double            point;
    double            contractSize;
    
+   datetime          locked_bar_time;
+   
    uint              dealNumber;
    
    Bollinger_Bands   BollingerBands[];
@@ -40,7 +42,7 @@ struct SymbolStruct
    
    void              setInfoFromChart(void);
    
-   void              executeDeal();
+   void              executeDeal(ENUM_FEEDBACK_TYPE _feedback);
 };
 
 //+------------------------------------------------------------------+
@@ -54,17 +56,18 @@ void SymbolStruct::setInfoFromChart(void)
    _symbolInfo.Name(this.symbolName);
 
    // Minimum and maximum volume size in trading operations
-   this.minLot       = _symbolInfo.LotsMin();
-   this.maxLot       = _symbolInfo.LotsMax();
+   this.minLot          = _symbolInfo.LotsMin();
+   this.maxLot          = _symbolInfo.LotsMax();
    
    // Point value
-   this.point        = _symbolInfo.Point();
+   this.point           = _symbolInfo.Point();
    
    // Contract size
-   this.contractSize = _symbolInfo.ContractSize();
+   this.contractSize    = _symbolInfo.ContractSize();
    
    // Set some additional parameters
-   this.dealNumber   = 0;
+   this.dealNumber      = 0;
+   this.locked_bar_time = 0;
 
    return;
 }
@@ -72,7 +75,7 @@ void SymbolStruct::setInfoFromChart(void)
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-void SymbolStruct::executeDeal(void)
+void SymbolStruct::executeDeal(ENUM_FEEDBACK_TYPE _feedback)
 {
    CSymbolInfo    _symbolInfo;
    CPositionInfo  _positionInfo;
@@ -92,7 +95,85 @@ void SymbolStruct::executeDeal(void)
    Ask_price = _symbolInfo.Ask();
    Bid_price = _symbolInfo.Bid();
    
+   if(this.locked_bar_time == TimeCurrent())
+   {
+      return;
+   }
    
+   switch(_feedback)
+   {
+      case BUY:
+         // Determine the current deal number 
+         this.dealNumber++;
+         
+         // Calculate the lot
+         OrderLot = this.minLot;
+         
+         // Execute the Deal
+         if(!_trade.Buy(OrderLot, 
+                        this.symbolName))
+         {
+            // If the Buy is unsuccessful, decrease the deal number by 1
+            this.dealNumber--;
+               
+            Print("The Buy ", this.symbolName, " has been unsuccessful. Code = ", _trade.ResultRetcode(),
+                  " (", _trade.ResultRetcodeDescription(), ")");
+                  
+            return;
+         }
+         
+         else
+         {
+            // Save the current time to block the bar for trading
+            this.locked_bar_time = TimeCurrent();
+            
+            Print("The Buy ", this.symbolName, " has been successful. Code = ", _trade.ResultRetcode(),
+                  " (", _trade.ResultRetcodeDescription(), ")");
+            
+            return;
+         }
+      
+         break;
+         
+      case SELL:
+         // Determine the current deal number 
+         this.dealNumber++;
+         
+         // Calculate the lot
+         OrderLot = this.minLot;
+         
+         // Execute the Deal
+         if(!_trade.Sell(OrderLot, 
+                         this.symbolName))
+         {
+            // If the Sell is unsuccessful, decrease the deal number by 1
+            this.dealNumber--;
+               
+            Print("The Sell ", this.symbolName, " has been unsuccessful. Code = ", _trade.ResultRetcode(),
+                  " (", _trade.ResultRetcodeDescription(), ")");
+                  
+            return;
+         }
+         
+         else
+         {
+            // Save the current time to block the bar for trading
+            this.locked_bar_time = TimeCurrent();
+            
+            Print("The Buy ", this.symbolName, " has been successful. Code = ", _trade.ResultRetcode(),
+                  " (", _trade.ResultRetcodeDescription(), ")");
+            
+            return;
+         }
+      
+         break;
+         
+      case DO_NOTHING:
+         break;   
+         
+      default:
+         break;
+   }
 
    return;
 }

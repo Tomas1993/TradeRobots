@@ -22,7 +22,6 @@ class Bollinger_Bands
       int      handle_High;
       int      handle_Low;
       
-      datetime locked_bar_time;
       datetime timeArray[];
       
       double   upperBandHigh[];
@@ -49,7 +48,8 @@ class Bollinger_Bands
                                            ENUM_TIMEFRAMES  _period);     
                                   
       ENUM_FEEDBACK_TYPE     getFeedBack(string           _symbol,
-                                         ENUM_TIMEFRAMES  _period);
+                                         ENUM_TIMEFRAMES  _period,
+                                         datetime         _locked_bar_time);
 };
 
 //+------------------------------------------------------------------+
@@ -111,9 +111,6 @@ void Bollinger_Bands::openIndicator(string           _symbol,
                     this.BollingerBandsConfigs.getMovingAveragePeriod(),
                     this.BollingerBandsConfigs.getHorizontalShift(),
                     this.BollingerBandsConfigs.getStandardDeviation());
-
-   // Set some additional parameters
-   this.locked_bar_time = 0;
 
    return;
 }
@@ -207,7 +204,8 @@ void Bollinger_Bands::sortIndicators(string           _symbol,
 //|                                                                  |
 //+------------------------------------------------------------------+
 ENUM_FEEDBACK_TYPE Bollinger_Bands::getFeedBack(string           _symbol,
-                                                ENUM_TIMEFRAMES  _period)
+                                                ENUM_TIMEFRAMES  _period,
+                                                datetime         _locked_bar_time)
 {
    CSymbolInfo    _symbolInfo;
    
@@ -290,7 +288,7 @@ ENUM_FEEDBACK_TYPE Bollinger_Bands::getFeedBack(string           _symbol,
    }*/
    
    // A position has already been opened on the current bar
-   if(this.locked_bar_time >= this.timeArray[0])
+   if(_locked_bar_time >= this.timeArray[0])
    { 
       return DO_NOTHING;
    }

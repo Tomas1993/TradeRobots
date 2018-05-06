@@ -25,7 +25,6 @@ class Moving_Average
       double   mediumPeriodArray[];
       double   longPeriodArray[];
       
-      datetime locked_bar_time;
       datetime timeArray[];
       
       void                 setHandlers(string               _symbol,
@@ -50,7 +49,8 @@ class Moving_Average
                                          ENUM_TIMEFRAMES  _period);
                                       
       ENUM_FEEDBACK_TYPE   getFeedBack(string           _symbol,
-                                       ENUM_TIMEFRAMES  _period);                                   
+                                       ENUM_TIMEFRAMES  _period,
+                                       datetime         _locked_bar_time);                                   
 };
 
 //+------------------------------------------------------------------+
@@ -137,9 +137,6 @@ void Moving_Average::openIndicator(string           _symbol,
                     this.MovingAverageConfigs.getMethod(),
                     this.MovingAverageConfigs.getAppliedPrice());
 
-   // Set some additional parameters
-   this.locked_bar_time = 0;
-
    return;
 }
 
@@ -208,7 +205,8 @@ void Moving_Average::sortIndicators(string           _symbol,
 //|                                                                  |
 //+------------------------------------------------------------------+
 ENUM_FEEDBACK_TYPE Moving_Average::getFeedBack(string           _symbol,
-                                               ENUM_TIMEFRAMES  _period)
+                                               ENUM_TIMEFRAMES  _period,
+                                               datetime         _locked_bar_time)
 {
    this.sortIndicators(_symbol,
                        _period,
@@ -219,7 +217,7 @@ ENUM_FEEDBACK_TYPE Moving_Average::getFeedBack(string           _symbol,
    //////////////////////////////////////
    
    // A position has already been opened on the current bar
-   if(this.locked_bar_time >= this.timeArray[0])
+   if(_locked_bar_time >= this.timeArray[0])
    { 
       return DO_NOTHING;
    }
@@ -231,36 +229,6 @@ ENUM_FEEDBACK_TYPE Moving_Average::getFeedBack(string           _symbol,
       (this.shortPeriodArray[1] < this.longPeriodArray[1]))
    {
       return BUY;
-   
-      // Determine the current deal number 
-      /*this.dealNumber++;
-      
-      // Calculate the lot
-      OrderLot = this.minLot;
-      
-      // Execute the Deal
-      if(!_trade.Buy(OrderLot, 
-                     _symbol))
-      {
-         // If the Buy is unsuccessful, decrease the deal number by 1
-         this.dealNumber--;
-            
-         Print("The Buy ", _symbol, " has been unsuccessful. Code = ", _trade.ResultRetcode(),
-               " (", _trade.ResultRetcodeDescription(), ")");
-               
-         return;
-      }
-      
-      else
-      {
-         // Save the current time to block the bar for trading
-         this.locked_bar_time = TimeCurrent();
-         
-         Print("The Buy ", _symbol, " has been successful. Code = ", _trade.ResultRetcode(),
-               " (", _trade.ResultRetcodeDescription(), ")");
-         
-         return;
-      }*/
    }
    
    /////////////////////////////
@@ -270,36 +238,6 @@ ENUM_FEEDBACK_TYPE Moving_Average::getFeedBack(string           _symbol,
       (this.shortPeriodArray[1] > this.longPeriodArray[1]))
    {
       return SELL;
-      
-      // Determine the current deal number 
-      /*this.dealNumber++;
-      
-      // Calculate the lot
-      OrderLot = this.minLot;
-      
-      // Execute the Deal
-      if(!_trade.Sell(OrderLot, 
-                      _symbol))
-      {
-         // If the Sell is unsuccessful, decrease the deal number by 1
-         this.dealNumber--;
-            
-         Print("The Sell ", _symbol, " has been unsuccessful. Code = ", _trade.ResultRetcode(),
-               " (", _trade.ResultRetcodeDescription(), ")");
-               
-         return;
-      }
-      
-      else
-      {
-         // Save the current time to block the bar for trading
-         this.locked_bar_time = TimeCurrent();
-         
-         Print("The Buy ", _symbol, " has been successful. Code = ", _trade.ResultRetcode(),
-               " (", _trade.ResultRetcodeDescription(), ")");
-         
-         return;
-      }*/
    }
    
    return DO_NOTHING;
