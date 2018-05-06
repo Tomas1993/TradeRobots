@@ -11,10 +11,6 @@
 //| defines                                                          |
 //+------------------------------------------------------------------+
 
-#include <Trade\SymbolInfo.mqh>
-#include <Trade\PositionInfo.mqh>
-#include <Trade\Trade.mqh>
-
 #include "..\Configs.mqh"
 #include "..\IndicadoresConfigs\MovingAverageConfig.mqh"
 
@@ -32,29 +28,29 @@ class Moving_Average
       datetime locked_bar_time;
       datetime timeArray[];
       
-      void              setHandlers(string               _symbol,
-                                    ENUM_TIMEFRAMES      _period,       
-                                    uint                 _shortPeriod,
-                                    uint                 _mediumPeriod,
-                                    uint                 _longPeriod, 
-                                    int                  _Shift,
-                                    ENUM_MA_METHOD       _method,
-                                    ENUM_APPLIED_PRICE   _applied_price);
+      void                 setHandlers(string               _symbol,
+                                       ENUM_TIMEFRAMES      _period,       
+                                       uint                 _shortPeriod,
+                                       uint                 _mediumPeriod,
+                                       uint                 _longPeriod, 
+                                       int                  _Shift,
+                                       ENUM_MA_METHOD       _method,
+                                       ENUM_APPLIED_PRICE   _applied_price);
                                     
-      void              sortIndicators(string           _symbol,
-                                       ENUM_TIMEFRAMES  _period,
-                                       int              _amountCopy);                              
+      void                 sortIndicators(string           _symbol,
+                                          ENUM_TIMEFRAMES  _period,
+                                          int              _amountCopy);                              
       
    protected:
    
    public:
       Moving_Average_Configuration MovingAverageConfigs;
       
-      void              openIndicator(string           _symbol,
-                                      ENUM_TIMEFRAMES  _period);
+      void                 openIndicator(string           _symbol,
+                                         ENUM_TIMEFRAMES  _period);
                                       
-      void              getFeedBack(string           _symbol,
-                                    ENUM_TIMEFRAMES  _period);                                   
+      ENUM_FEEDBACK_TYPE   getFeedBack(string           _symbol,
+                                       ENUM_TIMEFRAMES  _period);                                   
 };
 
 //+------------------------------------------------------------------+
@@ -211,17 +207,9 @@ void Moving_Average::sortIndicators(string           _symbol,
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-void Moving_Average::getFeedBack(string           _symbol,
-                                 ENUM_TIMEFRAMES  _period)
+ENUM_FEEDBACK_TYPE Moving_Average::getFeedBack(string           _symbol,
+                                               ENUM_TIMEFRAMES  _period)
 {
-   CSymbolInfo    _symbolInfo;
-   CPositionInfo  _positionInfo;
-   CTrade         _trade;
-   
-   double Ask_price;
-   double Bid_price;
-   double OrderLot = 0;
-   
    this.sortIndicators(_symbol,
                        _period,
                        3);
@@ -233,17 +221,8 @@ void Moving_Average::getFeedBack(string           _symbol,
    // A position has already been opened on the current bar
    if(this.locked_bar_time >= this.timeArray[0])
    { 
-      return;
+      return DO_NOTHING;
    }
-   
-   ////////////////////////
-   // Opening a Position //
-   ////////////////////////
-   _symbolInfo.Name(_symbol);
-   _symbolInfo.RefreshRates();
-   
-   Ask_price = _symbolInfo.Ask();
-   Bid_price = _symbolInfo.Bid();
    
    //////////////////////////////
    // Check for a Golden Cross //
@@ -251,8 +230,10 @@ void Moving_Average::getFeedBack(string           _symbol,
    if((this.shortPeriodArray[0] > this.longPeriodArray[0]) && 
       (this.shortPeriodArray[1] < this.longPeriodArray[1]))
    {
+      return BUY;
+   
       // Determine the current deal number 
-      this.dealNumber++;
+      /*this.dealNumber++;
       
       // Calculate the lot
       OrderLot = this.minLot;
@@ -279,7 +260,7 @@ void Moving_Average::getFeedBack(string           _symbol,
                " (", _trade.ResultRetcodeDescription(), ")");
          
          return;
-      }
+      }*/
    }
    
    /////////////////////////////
@@ -288,8 +269,10 @@ void Moving_Average::getFeedBack(string           _symbol,
    if((this.shortPeriodArray[0] < this.longPeriodArray[0]) && 
       (this.shortPeriodArray[1] > this.longPeriodArray[1]))
    {
+      return SELL;
+      
       // Determine the current deal number 
-      this.dealNumber++;
+      /*this.dealNumber++;
       
       // Calculate the lot
       OrderLot = this.minLot;
@@ -316,8 +299,8 @@ void Moving_Average::getFeedBack(string           _symbol,
                " (", _trade.ResultRetcodeDescription(), ")");
          
          return;
-      }
+      }*/
    }
    
-   return;
+   return DO_NOTHING;
 }

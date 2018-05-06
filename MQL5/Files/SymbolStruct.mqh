@@ -11,6 +11,10 @@
 //| defines                                                          |
 //+------------------------------------------------------------------+
 
+#include <Trade\SymbolInfo.mqh>
+#include <Trade\PositionInfo.mqh>
+#include <Trade\Trade.mqh>
+
 #include "Configs.mqh"
 #include "..\Files\Indicadores\BollingerBands.mqh"
 #include "..\Files\Indicadores\MovingAverage.mqh"
@@ -30,9 +34,9 @@ struct SymbolStruct
    
    uint              dealNumber;
    
-   Bollinger_Bands   BollingerBands[NUM_TIMEFRAMES];
+   Bollinger_Bands   BollingerBands[];
    
-   Moving_Average    MovingAverage[NUM_TIMEFRAMES];
+   Moving_Average    MovingAverage[];
    
    void              setInfoFromChart(void);
    
@@ -70,5 +74,25 @@ void SymbolStruct::setInfoFromChart(void)
 //+------------------------------------------------------------------+
 void SymbolStruct::executeDeal(void)
 {
+   CSymbolInfo    _symbolInfo;
+   CPositionInfo  _positionInfo;
+   CTrade         _trade;
+   
+   double Ask_price;
+   double Bid_price;
+   double OrderLot = 0;
+   
+   ////////////////////////
+   // Opening a Position //
+   ////////////////////////
+   
+   _symbolInfo.Name(this.symbolName);
+   _symbolInfo.RefreshRates();
+   
+   Ask_price = _symbolInfo.Ask();
+   Bid_price = _symbolInfo.Bid();
+   
+   
+
    return;
 }

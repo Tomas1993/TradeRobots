@@ -12,8 +12,6 @@
 //+------------------------------------------------------------------+
 
 #include <Trade\SymbolInfo.mqh>
-#include <Trade\PositionInfo.mqh>
-#include <Trade\Trade.mqh>
 
 #include "..\Configs.mqh"
 #include "..\IndicadoresConfigs\BollingerBandsConfig.mqh"
@@ -47,11 +45,11 @@ class Bollinger_Bands
    public:
       Bollinger_Bands_Configuration BollingerBandsConfigs;
    
-      void     openIndicator(string           _symbol,
-                             ENUM_TIMEFRAMES  _period);     
+      void                   openIndicator(string           _symbol,
+                                           ENUM_TIMEFRAMES  _period);     
                                   
-      void     getFeedBack(string           _symbol,
-                           ENUM_TIMEFRAMES  _period);
+      ENUM_FEEDBACK_TYPE     getFeedBack(string           _symbol,
+                                         ENUM_TIMEFRAMES  _period);
 };
 
 //+------------------------------------------------------------------+
@@ -208,31 +206,25 @@ void Bollinger_Bands::sortIndicators(string           _symbol,
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-void Bollinger_Bands::getFeedBack(string           _symbol,
-                                  ENUM_TIMEFRAMES  _period)
+ENUM_FEEDBACK_TYPE Bollinger_Bands::getFeedBack(string           _symbol,
+                                                ENUM_TIMEFRAMES  _period)
 {
    CSymbolInfo    _symbolInfo;
-   CPositionInfo  _positionInfo;
-   CTrade         _trade;
    
    double Ask_price;
    double Bid_price;
-   double OrderLot = 0;
    
    this.sortIndicators(_symbol,
                        _period,
                        1);
    
-   /////////////////////////
-   // Closing a Position ///
-   /////////////////////////
    _symbolInfo.Name(_symbol);
    _symbolInfo.RefreshRates();
    
    Ask_price = _symbolInfo.Ask();
    Bid_price = _symbolInfo.Bid();
    
-   if(PositionSelect(_symbol))
+   /*if(PositionSelect(_symbol))
    {
       ////////////////////////////
       // Closing a BUY position //
@@ -283,42 +275,35 @@ void Bollinger_Bands::getFeedBack(string           _symbol,
             }
          }
       }
-   }
+   }*/
    
    //////////////////////////////////////
    // Restrictions on position opening //
    //////////////////////////////////////
    
    // Price is in the position closing area
-   if((Bid_price >= this.lowerBandHigh[0]) && (Ask_price <= this.upperBandLow[0]))
+   /*if((Bid_price >= this.lowerBandHigh[0]) && (Ask_price <= this.upperBandLow[0]))
    {
       this.dealNumber = 0;
       
       return;
-   }
+   }*/
    
    // A position has already been opened on the current bar
    if(this.locked_bar_time >= this.timeArray[0])
    { 
-      return;
+      return DO_NOTHING;
    }
-   
-   ////////////////////////
-   // Opening a Position //
-   ////////////////////////
-   _symbolInfo.Name(_symbol);
-   _symbolInfo.RefreshRates();
-   
-   Ask_price = _symbolInfo.Ask();
-   Bid_price = _symbolInfo.Bid();
    
    ///////////////
    // For a Buy //
    ///////////////
    if(Ask_price <= this.lowerBandLow[0])
    {
+      return BUY;
+      
       // Determine the current deal number 
-      this.dealNumber++;
+      /*this.dealNumber++;
       
       // Calculate the lot
       OrderLot = this.minLot;
@@ -345,7 +330,7 @@ void Bollinger_Bands::getFeedBack(string           _symbol,
                " (", _trade.ResultRetcodeDescription(), ")");
          
          return;
-      }
+      }*/
    }
    
    ////////////////
@@ -353,8 +338,10 @@ void Bollinger_Bands::getFeedBack(string           _symbol,
    ////////////////
    if(Bid_price >= this.upperBandHigh[0])
    {
+      return SELL;
+      
       // Determine the current deal number 
-      this.dealNumber++;
+      /*this.dealNumber++;
       
       // Calculate the lot
       OrderLot = this.minLot;
@@ -381,8 +368,8 @@ void Bollinger_Bands::getFeedBack(string           _symbol,
                " (", _trade.ResultRetcodeDescription(), ")");
          
          return;
-      }
+      }*/
    }
    
-   return;
+   return DO_NOTHING;
 }

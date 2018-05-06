@@ -18,6 +18,9 @@
 //+------------------------------------------------------------------+
 void populaAtivosAcoesDayTrade(SymbolStruct &symbolStruct[])
 {  
+   ArrayResize(symbolStruct, 
+               0);
+
    addSymbol(symbolStruct, "GRND3", 1); 
    addSymbol(symbolStruct, "PETR3", 1);
    //addSymbol(symbolStruct, "EZTC3", 1);
@@ -76,6 +79,16 @@ void addSymbol(SymbolStruct   &symbolStruct[],
                uchar          peso)
 {
    static short posicao = 0;
+ 
+   if(ArraySize(symbolStruct) == CHARTS_MAX)
+   {
+      Print("reached limit of open charts. It's not possible to add more charts");
+      
+      return;
+   }
+ 
+   ArrayResize(symbolStruct, 
+               ArraySize(symbolStruct) + 1);
    
    symbolStruct[posicao].symbolName          = nome;
    symbolStruct[posicao].symbolWeight        = peso;
