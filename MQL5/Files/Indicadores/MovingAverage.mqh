@@ -17,15 +17,18 @@
 class Moving_Average
 {
    private:
-      int      handleShortPeriod;
-      int      handleMediumPeriod;
-      int      handleLongPeriod;
+      ENUM_FEEDBACK_TYPE   feedbackType;
+      double               feedbackForce;
+   
+      int                  handleShortPeriod;
+      int                  handleMediumPeriod;
+      int                  handleLongPeriod;
       
-      double   shortPeriodArray[];
-      double   mediumPeriodArray[];
-      double   longPeriodArray[];
+      double               shortPeriodArray[];
+      double               mediumPeriodArray[];
+      double               longPeriodArray[];
       
-      datetime timeArray[];
+      datetime             timeArray[];
       
       void                 setHandlers(string               _symbol,
                                        ENUM_TIMEFRAMES      _period,       
@@ -38,17 +41,21 @@ class Moving_Average
                                     
       void                 sortIndicators(string           _symbol,
                                           ENUM_TIMEFRAMES  _period,
-                                          int              _amountCopy);                              
+                                          int              _amountCopy);
       
    protected:
    
    public:
       Moving_Average_Configuration MovingAverageConfigs;
       
+      ENUM_FEEDBACK_TYPE   getFeedBackType(void)    { return this.feedbackType; }
+      
+      double               getFeedbackForce(void)   { return this.feedbackForce; }
+      
       void                 openIndicator(string           _symbol,
                                          ENUM_TIMEFRAMES  _period);
                                       
-      ENUM_FEEDBACK_TYPE   getFeedBack(string           _symbol,
+      void                 getFeedBack(string           _symbol,
                                        ENUM_TIMEFRAMES  _period,
                                        datetime         _locked_bar_time);                                   
 };
@@ -86,7 +93,7 @@ void Moving_Average::setHandlers(string               _symbol,
    //////////////////////////////
    // Second, medium Period MA //
    //////////////////////////////
-   this.handleMediumPeriod  = iMA(_symbol,
+   /*this.handleMediumPeriod  = iMA(_symbol,
                                   _period,
                                   _mediumPeriod,
                                   _Shift,
@@ -99,7 +106,7 @@ void Moving_Average::setHandlers(string               _symbol,
             "\n Error = ", GetLastError());
    
       ExpertRemove();
-   }
+   }*/
    
    /////////////////////////////
    // Finally, long Period MA //
@@ -204,9 +211,9 @@ void Moving_Average::sortIndicators(string           _symbol,
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-ENUM_FEEDBACK_TYPE Moving_Average::getFeedBack(string           _symbol,
-                                               ENUM_TIMEFRAMES  _period,
-                                               datetime         _locked_bar_time)
+void Moving_Average::getFeedBack(string           _symbol,
+                                 ENUM_TIMEFRAMES  _period,
+                                 datetime         _locked_bar_time)
 {
    this.sortIndicators(_symbol,
                        _period,
@@ -217,9 +224,11 @@ ENUM_FEEDBACK_TYPE Moving_Average::getFeedBack(string           _symbol,
    //////////////////////////////////////
    
    // A position has already been opened on the current bar
-   if(_locked_bar_time >= this.timeArray[0])
+   if(_locked_bar_time >= (this.timeArray[0]))
    { 
-      return DO_NOTHING;
+      this.feedbackType = DO_NOTHING;
+      
+      return;
    }
    
    //////////////////////////////
@@ -228,7 +237,9 @@ ENUM_FEEDBACK_TYPE Moving_Average::getFeedBack(string           _symbol,
    if((this.shortPeriodArray[0] > this.longPeriodArray[0]) && 
       (this.shortPeriodArray[1] < this.longPeriodArray[1]))
    {
-      return BUY;
+      this.feedbackType = BUY;
+   
+      return;
    }
    
    /////////////////////////////
@@ -237,8 +248,12 @@ ENUM_FEEDBACK_TYPE Moving_Average::getFeedBack(string           _symbol,
    if((this.shortPeriodArray[0] < this.longPeriodArray[0]) && 
       (this.shortPeriodArray[1] > this.longPeriodArray[1]))
    {
-      return SELL;
+      this.feedbackType = SELL;
+      
+      return;
    }
    
-   return DO_NOTHING;
+   this.feedbackType = DO_NOTHING;
+   
+   return;
 }

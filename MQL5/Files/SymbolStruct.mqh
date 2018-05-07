@@ -21,28 +21,43 @@
 
 struct SymbolStruct
 {
-   string            symbolName;
-   
-   long              symbolID;
-   
-   uchar             symbolWeight;
-   
-   double            minLot;
-   double            maxLot;
-   double            point;
-   double            contractSize;
-   
-   datetime          locked_bar_time;
-   
-   uint              dealNumber;
-   
-   Bollinger_Bands   BollingerBands[];
-   
-   Moving_Average    MovingAverage[];
-   
-   void              setInfoFromChart(void);
-   
-   void              executeDeal(ENUM_FEEDBACK_TYPE _feedback);
+   public:
+      string            symbolName;
+      
+      long              symbolID;
+      
+      uchar             symbolWeight;
+      
+      double            minLot;
+      double            maxLot;
+      double            point;
+      double            contractSize;
+      
+      datetime          locked_bar_time;
+      
+      uint              dealNumber;
+      
+      Bollinger_Bands   BollingerBands[];
+      
+      Moving_Average    MovingAverage[];
+      
+      void              setInfoFromChart(void);
+      
+      void              analyseFeedBack(ENUM_FEEDBACK_TYPE& _feedbackType,
+                                        double&             _feedbackForce);
+      
+      void              executeDeal(ENUM_FEEDBACK_TYPE _feedback,
+                                    double             _feedbackForce);
+                                 
+   private:
+      void              analyseFeedBackAcompanhamentoTendencia(ENUM_FEEDBACK_TYPE& _feedbackType,
+                                                               double&             _feedbackForce);
+      
+      void              analyseFeedBackContraTendencia(ENUM_FEEDBACK_TYPE& _feedbackType,
+                                                       double&             _feedbackForce);
+      
+      void              analyseFeedBackVolatilidade(ENUM_FEEDBACK_TYPE& _feedbackType,
+                                                    double&             _feedbackForce);
 };
 
 //+------------------------------------------------------------------+
@@ -75,7 +90,78 @@ void SymbolStruct::setInfoFromChart(void)
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-void SymbolStruct::executeDeal(ENUM_FEEDBACK_TYPE _feedback)
+void SymbolStruct::analyseFeedBack(ENUM_FEEDBACK_TYPE&   _feedbackType,
+                                   double&               _feedbackForce)
+{
+   ENUM_FEEDBACK_TYPE   feedBackType_AcompanhamentoTendencia;
+   double               feedbackForce_AcompanhamentoTendencia;
+   
+   /*ENUM_FEEDBACK_TYPE   feedBackType_ContraTendencia;
+   double               feedbackForce_ContraTendencia;
+   
+   ENUM_FEEDBACK_TYPE   feedBackType_Volatilidade;
+   double               feedbackForce_Volatilidade;*/
+
+   this.analyseFeedBackAcompanhamentoTendencia(feedBackType_AcompanhamentoTendencia,
+                                               feedbackForce_AcompanhamentoTendencia);
+   
+   /*this.analyseFeedBackContraTendencia(feedBackType_ContraTendencia,
+                                       feedbackForce_ContraTendencia);
+   
+   this.analyseFeedBackVolatilidade(feedBackType_Volatilidade,
+                                    feedbackForce_Volatilidade);*/
+              
+   // TODO                                 
+   _feedbackType = feedBackType_AcompanhamentoTendencia;                                 
+
+   return;
+}
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+void SymbolStruct::analyseFeedBackAcompanhamentoTendencia(ENUM_FEEDBACK_TYPE&   _feedbackType,
+                                                          double&               _feedbackForce)
+{
+   // Varre o vetor referente as Medias Moveis
+   for(int i = 0; i < ArraySize(this.MovingAverage); i++)
+   {
+      // TODO
+      _feedbackType = this.MovingAverage[i].getFeedBackType();
+   }
+   
+   // Varre o vetor referente as Bandas de Bollinger
+   for(int i = 0; i < ArraySize(this.BollingerBands); i++)
+   {
+      //this.BollingerBands[i]
+   }
+   
+   return;
+}
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+void SymbolStruct::analyseFeedBackContraTendencia(ENUM_FEEDBACK_TYPE&   _feedbackType,
+                                                  double&               _feedbackForce)
+{
+   return;
+}
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+void SymbolStruct::analyseFeedBackVolatilidade(ENUM_FEEDBACK_TYPE&   _feedbackType,
+                                               double&               _feedbackForce)
+{
+   return;
+}
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+void SymbolStruct::executeDeal(ENUM_FEEDBACK_TYPE _feedback,
+                               double             _feedbackForce)
 {
    CSymbolInfo    _symbolInfo;
    CPositionInfo  _positionInfo;
@@ -95,7 +181,7 @@ void SymbolStruct::executeDeal(ENUM_FEEDBACK_TYPE _feedback)
    Ask_price = _symbolInfo.Ask();
    Bid_price = _symbolInfo.Bid();
    
-   if(this.locked_bar_time == TimeCurrent())
+   if(this.locked_bar_time >= TimeCurrent())
    {
       return;
    }

@@ -19,6 +19,9 @@
 class Bollinger_Bands
 {
    private:
+      ENUM_FEEDBACK_TYPE   feedbackType;
+      double               feedbackForce;
+      
       int      handle_High;
       int      handle_Low;
       
@@ -43,11 +46,15 @@ class Bollinger_Bands
    
    public:
       Bollinger_Bands_Configuration BollingerBandsConfigs;
+      
+      ENUM_FEEDBACK_TYPE     getFeedBackType(void)    { return this.feedbackType; }
+      
+      double                 getFeedbackForce(void)   { return this.feedbackForce; }
    
       void                   openIndicator(string           _symbol,
                                            ENUM_TIMEFRAMES  _period);     
                                   
-      ENUM_FEEDBACK_TYPE     getFeedBack(string           _symbol,
+      void                   getFeedBack(string           _symbol,
                                          ENUM_TIMEFRAMES  _period,
                                          datetime         _locked_bar_time);
 };
@@ -203,9 +210,9 @@ void Bollinger_Bands::sortIndicators(string           _symbol,
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-ENUM_FEEDBACK_TYPE Bollinger_Bands::getFeedBack(string           _symbol,
-                                                ENUM_TIMEFRAMES  _period,
-                                                datetime         _locked_bar_time)
+void Bollinger_Bands::getFeedBack(string           _symbol,
+                                  ENUM_TIMEFRAMES  _period,
+                                  datetime         _locked_bar_time)
 {
    CSymbolInfo    _symbolInfo;
    
@@ -290,7 +297,9 @@ ENUM_FEEDBACK_TYPE Bollinger_Bands::getFeedBack(string           _symbol,
    // A position has already been opened on the current bar
    if(_locked_bar_time >= this.timeArray[0])
    { 
-      return DO_NOTHING;
+      this.feedbackType = DO_NOTHING;
+   
+      return;
    }
    
    ///////////////
@@ -298,7 +307,9 @@ ENUM_FEEDBACK_TYPE Bollinger_Bands::getFeedBack(string           _symbol,
    ///////////////
    if(Ask_price <= this.lowerBandLow[0])
    {
-      return BUY;
+      this.feedbackType = BUY;
+      
+      return;
       
       // Determine the current deal number 
       /*this.dealNumber++;
@@ -336,7 +347,9 @@ ENUM_FEEDBACK_TYPE Bollinger_Bands::getFeedBack(string           _symbol,
    ////////////////
    if(Bid_price >= this.upperBandHigh[0])
    {
-      return SELL;
+      this.feedbackType = SELL;
+      
+      return;
       
       // Determine the current deal number 
       /*this.dealNumber++;
@@ -369,5 +382,7 @@ ENUM_FEEDBACK_TYPE Bollinger_Bands::getFeedBack(string           _symbol,
       }*/
    }
    
-   return DO_NOTHING;
+   this.feedbackType = DO_NOTHING;
+   
+   return;
 }
