@@ -123,11 +123,74 @@ void SymbolStruct::analyseFeedBack(ENUM_FEEDBACK_TYPE&   _feedbackType,
 void SymbolStruct::analyseFeedBackAcompanhamentoTendencia(ENUM_FEEDBACK_TYPE&   _feedbackType,
                                                           double&               _feedbackForce)
 {
+   ENUM_FEEDBACK_TYPE   feedbackTypeAux;
+   double               feedbackForceAux;
+
    // Varre o vetor referente as Medias Moveis
    for(int i = 0; i < ArraySize(this.MovingAverage); i++)
    {
       // TODO
-      _feedbackType = this.MovingAverage[i].getFeedBackType();
+      feedbackTypeAux   = this.MovingAverage[i].getFeedBackType();
+      feedbackForceAux  = this.MovingAverage[i].getFeedbackForce();
+      
+      if(_feedbackType == BUY)
+      {
+         if(feedbackTypeAux == BUY)
+         {
+            _feedbackForce += feedbackForceAux;
+         }
+         
+         else if(feedbackTypeAux == SELL)
+         {
+            if(feedbackForceAux > _feedbackForce)
+            {
+               _feedbackType  = feedbackTypeAux;
+               
+               _feedbackForce = (feedbackForceAux - _feedbackForce); 
+            }
+            
+            else
+            {
+               _feedbackForce -= feedbackForceAux;
+            }
+         }
+         
+         else if(feedbackTypeAux == DO_NOTHING)
+         {
+         }
+      }
+      
+      else if(_feedbackType == SELL)
+      {
+         if(feedbackTypeAux == BUY)
+         {
+         }
+         
+         else if(feedbackTypeAux == SELL)
+         {
+            _feedbackForce += feedbackForceAux;
+         }
+         
+         else if(feedbackTypeAux == DO_NOTHING)
+         {
+         }
+      }
+      
+      else if(_feedbackType == DO_NOTHING)
+      {
+         if(feedbackTypeAux == BUY)
+         {
+         }
+         
+         else if(feedbackTypeAux == SELL)
+         {
+         }
+         
+         else if(feedbackTypeAux == DO_NOTHING)
+         {
+            _feedbackForce += feedbackForceAux;
+         }
+      }
    }
    
    // Varre o vetor referente as Bandas de Bollinger
