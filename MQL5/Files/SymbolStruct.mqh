@@ -22,42 +22,73 @@
 struct SymbolStruct
 {
    public:
-      string            symbolName;
+      string                  symbolName;
       
-      long              symbolID;
+      long                    symbolID;
       
-      uchar             symbolWeight;
+      uchar                   symbolWeight;
       
-      double            minLot;
-      double            maxLot;
-      double            point;
-      double            contractSize;
+      double                  minLot;
+      double                  maxLot;
+      double                  point;
+      double                  contractSize;
       
-      datetime          locked_bar_time;
+      datetime                locked_bar_time;
       
-      uint              dealNumber;
+      uint                    dealNumber;
       
-      Bollinger_Bands   BollingerBands[];
+      Bollinger_Bands         BollingerBands[];
       
-      Moving_Average    MovingAverage[];
+      Moving_Average          MovingAverage[];
       
-      void              setInfoFromChart(void);
+      void                    setInfoFromChart(void);
       
-      void              analyseFeedBack(ENUM_FEEDBACK_TYPE& _feedbackType,
-                                        double&             _feedbackForce);
+      void                    analyseFeedBack(
+                                 ENUM_FEEDBACK_TYPE&        _feedbackType
+                              );
       
-      void              executeDeal(ENUM_FEEDBACK_TYPE _feedback,
-                                    double             _feedbackForce);
+      void                    executeDeal(
+                                 ENUM_FEEDBACK_TYPE         _feedback
+                              );
                                  
    private:
-      void              analyseFeedBackAcompanhamentoTendencia(ENUM_FEEDBACK_TYPE& _feedbackType,
-                                                               double&             _feedbackForce);
+      void                    analyseFeedBackAcompanhamentoTendencia(
+                                 ENUM_FEEDBACK_TYPE&        _feedbackType
+                              );
       
-      void              analyseFeedBackContraTendencia(ENUM_FEEDBACK_TYPE& _feedbackType,
-                                                       double&             _feedbackForce);
+      void                    analyseFeedBackContraTendencia(
+                                 ENUM_FEEDBACK_TYPE&        _feedbackType
+                              );
       
-      void              analyseFeedBackVolatilidade(ENUM_FEEDBACK_TYPE& _feedbackType,
-                                                    double&             _feedbackForce);
+      void                    analyseFeedBackVolatilidade(
+                                 ENUM_FEEDBACK_TYPE&        _feedbackType
+                              );
+      
+      double                  calculateLot(
+                                 ENUM_FEEDBACK_TYPE         _feedback
+                              );
+      
+      double                  calculatePrice(
+                                 ENUM_FEEDBACK_TYPE         _feedback
+                              );
+      
+      double                  calculateStopLoss(
+                                 ENUM_FEEDBACK_TYPE         _feedback
+                              );
+      
+      double                  calculateStopGain(
+                                 ENUM_FEEDBACK_TYPE         _feedback
+                              );
+                              
+      void                    informUserTrade(
+                                 bool                       _tradeSuccessful,
+                                 CTrade&                    _trade
+                              );
+                     
+      void                    sumFeedBacks(
+                                 ENUM_FEEDBACK_TYPE&        _feedback,
+                                 ENUM_FEEDBACK_TYPE         _feedbackAux
+                              );                        
 };
 
 //+------------------------------------------------------------------+
@@ -90,26 +121,21 @@ void SymbolStruct::setInfoFromChart(void)
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-void SymbolStruct::analyseFeedBack(ENUM_FEEDBACK_TYPE&   _feedbackType,
-                                   double&               _feedbackForce)
+void SymbolStruct::analyseFeedBack(ENUM_FEEDBACK_TYPE&   _feedbackType)
 {
-   ENUM_FEEDBACK_TYPE   feedBackType_AcompanhamentoTendencia;
-   double               feedbackForce_AcompanhamentoTendencia;
-   
-   /*ENUM_FEEDBACK_TYPE   feedBackType_ContraTendencia;
-   double               feedbackForce_ContraTendencia;
-   
+   ENUM_FEEDBACK_TYPE   feedBackType_AcompanhamentoTendencia;  
+   /*
+   ENUM_FEEDBACK_TYPE   feedBackType_ContraTendencia; 
    ENUM_FEEDBACK_TYPE   feedBackType_Volatilidade;
-   double               feedbackForce_Volatilidade;*/
+   */
 
-   this.analyseFeedBackAcompanhamentoTendencia(feedBackType_AcompanhamentoTendencia,
-                                               feedbackForce_AcompanhamentoTendencia);
+   this.analyseFeedBackAcompanhamentoTendencia(feedBackType_AcompanhamentoTendencia);
    
-   /*this.analyseFeedBackContraTendencia(feedBackType_ContraTendencia,
-                                       feedbackForce_ContraTendencia);
+   /*
+   this.analyseFeedBackContraTendencia(feedBackType_ContraTendencia);
    
-   this.analyseFeedBackVolatilidade(feedBackType_Volatilidade,
-                                    feedbackForce_Volatilidade);*/
+   this.analyseFeedBackVolatilidade(feedBackType_Volatilidade);
+   */
               
    // TODO                                 
    _feedbackType = feedBackType_AcompanhamentoTendencia;                                 
@@ -120,76 +146,24 @@ void SymbolStruct::analyseFeedBack(ENUM_FEEDBACK_TYPE&   _feedbackType,
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-void SymbolStruct::analyseFeedBackAcompanhamentoTendencia(ENUM_FEEDBACK_TYPE&   _feedbackType,
-                                                          double&               _feedbackForce)
+void SymbolStruct::analyseFeedBackAcompanhamentoTendencia(ENUM_FEEDBACK_TYPE&   _feedbackType)
 {
    ENUM_FEEDBACK_TYPE   feedbackTypeAux;
-   double               feedbackForceAux;
 
    // Varre o vetor referente as Medias Moveis
    for(int i = 0; i < ArraySize(this.MovingAverage); i++)
    {
-      // TODO
       feedbackTypeAux   = this.MovingAverage[i].getFeedBackType();
-      feedbackForceAux  = this.MovingAverage[i].getFeedbackForce();
       
-      if(_feedbackType == BUY)
+      if(i == 0)
       {
-         if(feedbackTypeAux == BUY)
-         {
-            _feedbackForce += feedbackForceAux;
-         }
-         
-         else if(feedbackTypeAux == SELL)
-         {
-            if(feedbackForceAux > _feedbackForce)
-            {
-               _feedbackType  = feedbackTypeAux;
-               
-               _feedbackForce = (feedbackForceAux - _feedbackForce); 
-            }
-            
-            else
-            {
-               _feedbackForce -= feedbackForceAux;
-            }
-         }
-         
-         else if(feedbackTypeAux == DO_NOTHING)
-         {
-         }
+         _feedbackType  = feedbackTypeAux;
       }
       
-      else if(_feedbackType == SELL)
+      else
       {
-         if(feedbackTypeAux == BUY)
-         {
-         }
-         
-         else if(feedbackTypeAux == SELL)
-         {
-            _feedbackForce += feedbackForceAux;
-         }
-         
-         else if(feedbackTypeAux == DO_NOTHING)
-         {
-         }
-      }
-      
-      else if(_feedbackType == DO_NOTHING)
-      {
-         if(feedbackTypeAux == BUY)
-         {
-         }
-         
-         else if(feedbackTypeAux == SELL)
-         {
-         }
-         
-         else if(feedbackTypeAux == DO_NOTHING)
-         {
-            _feedbackForce += feedbackForceAux;
-         }
+         this.sumFeedBacks(_feedbackType,
+                           feedbackTypeAux);
       }
    }
    
@@ -205,8 +179,7 @@ void SymbolStruct::analyseFeedBackAcompanhamentoTendencia(ENUM_FEEDBACK_TYPE&   
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-void SymbolStruct::analyseFeedBackContraTendencia(ENUM_FEEDBACK_TYPE&   _feedbackType,
-                                                  double&               _feedbackForce)
+void SymbolStruct::analyseFeedBackContraTendencia(ENUM_FEEDBACK_TYPE&   _feedbackType)
 {
    return;
 }
@@ -214,8 +187,7 @@ void SymbolStruct::analyseFeedBackContraTendencia(ENUM_FEEDBACK_TYPE&   _feedbac
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-void SymbolStruct::analyseFeedBackVolatilidade(ENUM_FEEDBACK_TYPE&   _feedbackType,
-                                               double&               _feedbackForce)
+void SymbolStruct::analyseFeedBackVolatilidade(ENUM_FEEDBACK_TYPE&   _feedbackType)
 {
    return;
 }
@@ -223,16 +195,93 @@ void SymbolStruct::analyseFeedBackVolatilidade(ENUM_FEEDBACK_TYPE&   _feedbackTy
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-void SymbolStruct::executeDeal(ENUM_FEEDBACK_TYPE _feedback,
-                               double             _feedbackForce)
+void SymbolStruct::executeDeal(ENUM_FEEDBACK_TYPE _feedback)
 {
-   CSymbolInfo    _symbolInfo;
-   CPositionInfo  _positionInfo;
    CTrade         _trade;
    
-   double Ask_price;
-   double Bid_price;
-   double OrderLot = 0;
+   bool           tradeReturn = false;
+   
+   double         OrderLot    = 0.0;
+   double         StopLoss    = 0.0;
+   double         StopGain    = 0.0;
+   double         Price       = 0.0;
+   
+   if(this.locked_bar_time >= TimeCurrent())
+   {
+      return;
+   }
+   
+   // Calculate the lot
+   OrderLot = this.calculateLot(_feedback);
+   
+   // Calculate Order Price
+   Price    = this.calculatePrice(_feedback);
+   
+   // Calculate Stop Loss
+   StopLoss = this.calculateStopLoss(_feedback);
+   
+   // Calculate Stop Gain
+   StopGain = this.calculateStopGain(_feedback);
+   
+   switch(_feedback)
+   {
+      case BUY:
+         // Determine the current deal number 
+         this.dealNumber++;
+         
+         // Execute the Deal
+         tradeReturn = _trade.Buy(OrderLot, 
+                                  this.symbolName,
+                                  Price,
+                                  StopLoss,
+                                  StopGain);
+                                  
+         this.informUserTrade(tradeReturn,
+                              _trade);
+                              
+         break;
+         
+      case SELL:
+         // Determine the current deal number 
+         this.dealNumber++;
+         
+         // Execute the Deal
+         tradeReturn = _trade.Sell(OrderLot, 
+                                   this.symbolName,
+                                   Price,
+                                   StopLoss,
+                                   StopGain);
+                                  
+         this.informUserTrade(tradeReturn,
+                              _trade);
+      
+         break;
+         
+      case DO_NOTHING:    
+      default:
+         break;
+   }
+
+   return;
+}
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+double SymbolStruct::calculateLot(ENUM_FEEDBACK_TYPE _feedback)
+{
+   return this.minLot;
+}
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+double SymbolStruct::calculatePrice(ENUM_FEEDBACK_TYPE _feedback)
+{
+   CSymbolInfo    _symbolInfo;
+   
+   double         Ask_price;
+   double         Bid_price;
    
    ////////////////////////
    // Opening a Position //
@@ -244,85 +293,68 @@ void SymbolStruct::executeDeal(ENUM_FEEDBACK_TYPE _feedback,
    Ask_price = _symbolInfo.Ask();
    Bid_price = _symbolInfo.Bid();
    
-   if(this.locked_bar_time >= TimeCurrent())
+   return 0.0;
+}
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+double SymbolStruct::calculateStopLoss(ENUM_FEEDBACK_TYPE _feedback)
+{
+   return 0.0;
+}
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+double SymbolStruct::calculateStopGain(ENUM_FEEDBACK_TYPE _feedback)
+{
+   return 0.0;
+}
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+void SymbolStruct::informUserTrade(bool                     _tradeSuccessful,
+                                   CTrade&                  _trade)
+{
+   switch(_tradeSuccessful)
    {
-      return;
-   }
-   
-   switch(_feedback)
-   {
-      case BUY:
-         // Determine the current deal number 
-         this.dealNumber++;
-         
-         // Calculate the lot
-         OrderLot = this.minLot;
-         
-         // Execute the Deal
-         if(!_trade.Buy(OrderLot, 
-                        this.symbolName))
-         {
-            // If the Buy is unsuccessful, decrease the deal number by 1
-            this.dealNumber--;
-               
-            Print("The Buy ", this.symbolName, " has been unsuccessful. Code = ", _trade.ResultRetcode(),
-                  " (", _trade.ResultRetcodeDescription(), ")");
+      case true:
+         // Save the current time to block the bar for trading
+         this.locked_bar_time = TimeCurrent();
+            
+         Print("The Deal for ", this.symbolName, " has been successful. Code = ", _trade.ResultRetcode(),
+               " (", _trade.ResultRetcodeDescription(), ")");
                   
-            return;
-         }
-         
-         else
-         {
-            // Save the current time to block the bar for trading
-            this.locked_bar_time = TimeCurrent();
-            
-            Print("The Buy ", this.symbolName, " has been successful. Code = ", _trade.ResultRetcode(),
-                  " (", _trade.ResultRetcodeDescription(), ")");
-            
-            return;
-         }
-      
          break;
          
-      case SELL:
-         // Determine the current deal number 
-         this.dealNumber++;
-         
-         // Calculate the lot
-         OrderLot = this.minLot;
-         
-         // Execute the Deal
-         if(!_trade.Sell(OrderLot, 
-                         this.symbolName))
-         {
-            // If the Sell is unsuccessful, decrease the deal number by 1
-            this.dealNumber--;
-               
-            Print("The Sell ", this.symbolName, " has been unsuccessful. Code = ", _trade.ResultRetcode(),
-                  " (", _trade.ResultRetcodeDescription(), ")");
+      case false:
+         // If the Buy is unsuccessful, decrease the deal number by 1
+         this.dealNumber--;
+            
+         Print("The Deal for ", this.symbolName, " has been unsuccessful. Code = ", _trade.ResultRetcode(),
+               " (", _trade.ResultRetcodeDescription(), ")");
                   
-            return;
-         }
-         
-         else
-         {
-            // Save the current time to block the bar for trading
-            this.locked_bar_time = TimeCurrent();
-            
-            Print("The Buy ", this.symbolName, " has been successful. Code = ", _trade.ResultRetcode(),
-                  " (", _trade.ResultRetcodeDescription(), ")");
-            
-            return;
-         }
-      
          break;
-         
-      case DO_NOTHING:
-         break;   
          
       default:
-         break;
+         break;   
    }
 
    return;
 }
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+void SymbolStruct::sumFeedBacks(ENUM_FEEDBACK_TYPE&   _feedback,
+                                ENUM_FEEDBACK_TYPE    _feedbackAux)
+{
+   if(_feedback != _feedbackAux)
+   {
+      _feedback = DO_NOTHING;
+   }
+   
+   return;
+}                                

@@ -14,35 +14,37 @@
 class Moving_Average_Configuration
 {
    private:
-      uint                 shortPeriod;
-      uint                 mediumPeriod;
-      uint                 longPeriod;
+      uint                             shortPeriod;
+      uint                             mediumPeriod;
+      uint                             longPeriod;
       
-      int                  shift;
+      int                              shift;
       
-      ENUM_MA_METHOD       method;
+      ENUM_MA_METHOD                   method;
       
-      ENUM_APPLIED_PRICE   applied_price;
+      ENUM_APPLIED_PRICE               applied_price;
    
    protected:
    
    public:   
-      uint                 getShortPeriod(void)          { return this.shortPeriod; }
-      uint                 getMediumPeriod(void)         { return this.mediumPeriod; }
-      uint                 getLongPeriod(void)           { return this.longPeriod; }
+      uint                             getShortPeriod(void)          { return this.shortPeriod; }
+      uint                             getMediumPeriod(void)         { return this.mediumPeriod; }
+      uint                             getLongPeriod(void)           { return this.longPeriod; }
    
-      int                  getShift(void)                { return this.shift; }
+      int                              getShift(void)                { return this.shift; }
       
-      ENUM_MA_METHOD       getMethod(void)               { return this.method; }
+      ENUM_MA_METHOD                   getMethod(void)               { return this.method; }
       
-      ENUM_APPLIED_PRICE   getAppliedPrice(void)         { return this.applied_price; }
+      ENUM_APPLIED_PRICE               getAppliedPrice(void)         { return this.applied_price; }
    
-      void                 setMovingAverageIndicator(uint               _shortPeriod,
-                                                     uint               _mediumPeriod,
-                                                     uint               _longPeriod,
-                                                     int                _shift,
-                                                     ENUM_MA_METHOD     _method,
-                                                     ENUM_APPLIED_PRICE _applied_price);
+      void                             setMovingAverageIndicator(
+                                          uint                    _shortPeriod,
+                                          uint                    _mediumPeriod,
+                                          uint                    _longPeriod,
+                                          int                     _shift,
+                                          ENUM_MA_METHOD          _method,
+                                          ENUM_APPLIED_PRICE      _applied_price
+                                       );
 };
 
 //+------------------------------------------------------------------+

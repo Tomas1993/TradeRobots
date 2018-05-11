@@ -17,47 +17,56 @@
 class Moving_Average
 {
    private:
-      ENUM_FEEDBACK_TYPE   feedbackType;
-      double               feedbackForce;
+      ENUM_FEEDBACK_TYPE               feedbackType;
    
-      int                  handleShortPeriod;
-      int                  handleMediumPeriod;
-      int                  handleLongPeriod;
+      int                              handleShortPeriod;
+      int                              handleMediumPeriod;
+      int                              handleLongPeriod;
       
-      double               shortPeriodArray[];
-      double               mediumPeriodArray[];
-      double               longPeriodArray[];
+      double                           shortPeriodArray[];
+      double                           mediumPeriodArray[];
+      double                           longPeriodArray[];
       
-      datetime             timeArray[];
+      datetime                         timeArray[];
       
-      void                 setHandlers(string               _symbol,
-                                       ENUM_TIMEFRAMES      _period,       
-                                       uint                 _shortPeriod,
-                                       uint                 _mediumPeriod,
-                                       uint                 _longPeriod, 
-                                       int                  _Shift,
-                                       ENUM_MA_METHOD       _method,
-                                       ENUM_APPLIED_PRICE   _applied_price);
+      void                             setHandlers(
+                                          string                     _symbol,
+                                          ENUM_TIMEFRAMES            _period,       
+                                          uint                       _shortPeriod,
+                                          uint                       _mediumPeriod,
+                                          uint                       _longPeriod, 
+                                          int                        _Shift,
+                                          ENUM_MA_METHOD             _method,
+                                          ENUM_APPLIED_PRICE         _applied_price
+                                       );
                                     
-      void                 sortIndicators(string           _symbol,
-                                          ENUM_TIMEFRAMES  _period,
-                                          int              _amountCopy);
+      void                             sortIndicators(
+                                          string                     _symbol,
+                                          ENUM_TIMEFRAMES            _period,
+                                          int                        _amountCopy
+                                       );
+                                       
+      void                             informUser(
+                                          bool                       _successful
+                                       );                                    
       
    protected:
    
    public:
-      Moving_Average_Configuration MovingAverageConfigs;
+      Moving_Average_Configuration     MovingAverageConfigs;
       
-      ENUM_FEEDBACK_TYPE   getFeedBackType(void)    { return this.feedbackType; }
+      ENUM_FEEDBACK_TYPE               getFeedBackType(void)         { return this.feedbackType; }
       
-      double               getFeedbackForce(void)   { return this.feedbackForce; }
-      
-      void                 openIndicator(string           _symbol,
-                                         ENUM_TIMEFRAMES  _period);
+      void                             openIndicator(
+                                          string                     _symbol,
+                                          ENUM_TIMEFRAMES            _period
+                                       );
                                       
-      void                 getFeedBack(string           _symbol,
-                                       ENUM_TIMEFRAMES  _period,
-                                       datetime         _locked_bar_time);                                   
+      void                             getFeedBack(
+                                          string                     _symbol,
+                                          ENUM_TIMEFRAMES            _period,
+                                          datetime                   _locked_bar_time
+                                       );                                   
 };
 
 //+------------------------------------------------------------------+
@@ -84,16 +93,14 @@ void Moving_Average::setHandlers(string               _symbol,
    
    if(this.handleShortPeriod < 0)
    {
-      Print("Failed to create a handle for the Shorter Moving Average for ", _symbol, " . Handle = ", INVALID_HANDLE,
-            "\n Error = ", GetLastError());
-   
-      ExpertRemove();
+      this.informUser(false);
    }
    
    //////////////////////////////
    // Second, medium Period MA //
    //////////////////////////////
-   /*this.handleMediumPeriod  = iMA(_symbol,
+   /*
+   this.handleMediumPeriod  = iMA(_symbol,
                                   _period,
                                   _mediumPeriod,
                                   _Shift,
@@ -102,11 +109,9 @@ void Moving_Average::setHandlers(string               _symbol,
                                          
    if(this.handleMediumPeriod < 0)
    {
-      Print("Failed to create a handle for the Medium Moving Average for ", _symbol, " . Handle = ", INVALID_HANDLE,
-            "\n Error = ", GetLastError());
-   
-      ExpertRemove();
-   }*/
+      this.informUser(false);
+   }
+   */
    
    /////////////////////////////
    // Finally, long Period MA //
@@ -120,10 +125,7 @@ void Moving_Average::setHandlers(string               _symbol,
                                          
    if(this.handleLongPeriod < 0)
    {
-      Print("Failed to create a handle for the Longer Moving Average for ", _symbol, " . Handle = ", INVALID_HANDLE,
-            "\n Error = ", GetLastError());
-   
-      ExpertRemove();
+      this.informUser(false);
    }
          
    return;
@@ -255,5 +257,30 @@ void Moving_Average::getFeedBack(string           _symbol,
    
    this.feedbackType = DO_NOTHING;
    
+   return;
+}
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+void  Moving_Average::informUser(bool _successful)
+{
+   switch(_successful)
+   {
+      case true:
+         break;
+         
+      case false:
+         Print("Failed to create a handler for the Moving Average Indicator!"
+               "\nError = ", GetLastError());
+   
+         ExpertRemove();
+      
+         break;
+         
+      default:
+         break;
+   }
+
    return;
 }
