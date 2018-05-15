@@ -124,21 +124,47 @@ void SymbolStruct::setInfoFromChart(void)
 void SymbolStruct::analyseFeedBack(ENUM_FEEDBACK_TYPE&   _feedbackType)
 {
    ENUM_FEEDBACK_TYPE   feedBackType_AcompanhamentoTendencia;
-   /*
    ENUM_FEEDBACK_TYPE   feedBackType_ContraTendencia;
    ENUM_FEEDBACK_TYPE   feedBackType_Volatilidade;
-   */
 
-   this.analyseFeedBackAcompanhamentoTendencia(feedBackType_AcompanhamentoTendencia);
+   if(ArraySize(acompanhamentoTendenciaIndicators) > 0)
+   {
+      this.analyseFeedBackAcompanhamentoTendencia(feedBackType_AcompanhamentoTendencia);
+      
+      _feedbackType = feedBackType_AcompanhamentoTendencia;
+   }
    
-   /*
-   this.analyseFeedBackContraTendencia(feedBackType_ContraTendencia);
+   if(ArraySize(indicadores_ContraTendencia) > 0)
+   {
+      this.analyseFeedBackContraTendencia(feedBackType_ContraTendencia);
+      
+      if(ArraySize(acompanhamentoTendenciaIndicators) > 0)
+      {   
+         this.sumFeedBacks(_feedbackType,
+                           feedBackType_ContraTendencia);
+      }
+      
+      else
+      {
+         _feedbackType = feedBackType_ContraTendencia;
+      }
+   }
    
-   this.analyseFeedBackVolatilidade(feedBackType_Volatilidade);
-   */
-              
-   // TODO                                 
-   _feedbackType = feedBackType_AcompanhamentoTendencia;                                 
+   if(ArraySize(volatilityIndicators) > 0)
+   {
+      this.analyseFeedBackVolatilidade(feedBackType_Volatilidade);
+      
+      if(ArraySize(volatilityIndicators) > 0)
+      {   
+         this.sumFeedBacks(_feedbackType,
+                           feedBackType_Volatilidade);
+      }
+      
+      else
+      {
+         _feedbackType = feedBackType_Volatilidade;
+      }
+   }
 
    return;
 }
@@ -181,6 +207,8 @@ void SymbolStruct::analyseFeedBackAcompanhamentoTendencia(ENUM_FEEDBACK_TYPE&   
 //+------------------------------------------------------------------+
 void SymbolStruct::analyseFeedBackContraTendencia(ENUM_FEEDBACK_TYPE&   _feedbackType)
 {
+   ENUM_FEEDBACK_TYPE   feedbackTypeAux;
+   
    return;
 }
 
@@ -189,6 +217,8 @@ void SymbolStruct::analyseFeedBackContraTendencia(ENUM_FEEDBACK_TYPE&   _feedbac
 //+------------------------------------------------------------------+
 void SymbolStruct::analyseFeedBackVolatilidade(ENUM_FEEDBACK_TYPE&   _feedbackType)
 {
+   ENUM_FEEDBACK_TYPE   feedbackTypeAux;
+   
    return;
 }
 
