@@ -20,7 +20,6 @@ class Bollinger_Bands
 {
    private:
       ENUM_FEEDBACK_TYPE   feedbackType;
-      double               feedbackForce;
       
       int      handle_High;
       int      handle_Low;
@@ -48,8 +47,6 @@ class Bollinger_Bands
       Bollinger_Bands_Configuration BollingerBandsConfigs;
       
       ENUM_FEEDBACK_TYPE     getFeedBackType(void)    { return this.feedbackType; }
-      
-      double                 getFeedbackForce(void)   { return this.feedbackForce; }
    
       void                   openIndicator(string           _symbol,
                                            ENUM_TIMEFRAMES  _period);     
@@ -298,18 +295,14 @@ void Bollinger_Bands::getFeedBack(string           _symbol,
    if(_locked_bar_time >= this.timeArray[0])
    { 
       this.feedbackType = DO_NOTHING;
-   
-      return;
    }
    
    ///////////////
    // For a Buy //
    ///////////////
-   if(Ask_price <= this.lowerBandLow[0])
+   else if(Ask_price <= this.lowerBandLow[0])
    {
       this.feedbackType = BUY;
-      
-      return;
       
       // Determine the current deal number 
       /*this.dealNumber++;
@@ -345,11 +338,9 @@ void Bollinger_Bands::getFeedBack(string           _symbol,
    ////////////////
    // For a Sell //
    ////////////////
-   if(Bid_price >= this.upperBandHigh[0])
+   else if(Bid_price >= this.upperBandHigh[0])
    {
       this.feedbackType = SELL;
-      
-      return;
       
       // Determine the current deal number 
       /*this.dealNumber++;
@@ -382,7 +373,10 @@ void Bollinger_Bands::getFeedBack(string           _symbol,
       }*/
    }
    
-   this.feedbackType = DO_NOTHING;
+   else
+   {
+      this.feedbackType = DO_NOTHING;
+   }
    
    return;
 }

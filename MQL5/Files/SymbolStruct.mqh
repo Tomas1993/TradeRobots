@@ -53,15 +53,18 @@ struct SymbolStruct
                                  
    private:
       void                    analyseFeedBackAcompanhamentoTendencia(
-                                 ENUM_FEEDBACK_TYPE&        _feedbackType
+                                 ENUM_FEEDBACK_TYPE&        _feedbackType,
+                                 bool                       _firstAnalysis
                               );
       
       void                    analyseFeedBackContraTendencia(
-                                 ENUM_FEEDBACK_TYPE&        _feedbackType
+                                 ENUM_FEEDBACK_TYPE&        _feedbackType,
+                                 bool                       _firstAnalysis
                               );
       
       void                    analyseFeedBackVolatilidade(
-                                 ENUM_FEEDBACK_TYPE&        _feedbackType
+                                 ENUM_FEEDBACK_TYPE&        _feedbackType,
+                                 bool                       _firstAnalysis
                               );
       
       double                  calculateLot(
@@ -129,39 +132,48 @@ void SymbolStruct::analyseFeedBack(ENUM_FEEDBACK_TYPE&   _feedbackType)
 
    if(ArraySize(acompanhamentoTendenciaIndicators) > 0)
    {
-      this.analyseFeedBackAcompanhamentoTendencia(feedBackType_AcompanhamentoTendencia);
+      this.analyseFeedBackAcompanhamentoTendencia(feedBackType_AcompanhamentoTendencia,
+                                                  true);
       
       _feedbackType = feedBackType_AcompanhamentoTendencia;
    }
    
    if(ArraySize(indicadores_ContraTendencia) > 0)
    {
-      this.analyseFeedBackContraTendencia(feedBackType_ContraTendencia);
-      
       if(ArraySize(acompanhamentoTendenciaIndicators) > 0)
-      {   
+      {
+         this.analyseFeedBackContraTendencia(feedBackType_ContraTendencia,
+                                             false);
+         
          this.sumFeedBacks(_feedbackType,
                            feedBackType_ContraTendencia);
       }
       
       else
       {
+         this.analyseFeedBackContraTendencia(feedBackType_ContraTendencia,
+                                             true);
+         
          _feedbackType = feedBackType_ContraTendencia;
       }
    }
    
    if(ArraySize(volatilityIndicators) > 0)
    {
-      this.analyseFeedBackVolatilidade(feedBackType_Volatilidade);
-      
       if(ArraySize(volatilityIndicators) > 0)
       {   
+         this.analyseFeedBackVolatilidade(feedBackType_Volatilidade,
+                                          false);
+         
          this.sumFeedBacks(_feedbackType,
                            feedBackType_Volatilidade);
       }
       
       else
       {
+         this.analyseFeedBackVolatilidade(feedBackType_Volatilidade,
+                                          true);
+         
          _feedbackType = feedBackType_Volatilidade;
       }
    }
@@ -172,7 +184,8 @@ void SymbolStruct::analyseFeedBack(ENUM_FEEDBACK_TYPE&   _feedbackType)
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-void SymbolStruct::analyseFeedBackAcompanhamentoTendencia(ENUM_FEEDBACK_TYPE&   _feedbackType)
+void SymbolStruct::analyseFeedBackAcompanhamentoTendencia(ENUM_FEEDBACK_TYPE&   _feedbackType,
+                                                          bool                  _firstAnalysis)
 {
    ENUM_FEEDBACK_TYPE   feedbackTypeAux;
 
@@ -181,9 +194,11 @@ void SymbolStruct::analyseFeedBackAcompanhamentoTendencia(ENUM_FEEDBACK_TYPE&   
    {
       feedbackTypeAux   = this.MovingAverage[i].getFeedBackType();
       
-      if(i == 0)
+      if(_firstAnalysis)
       {
          _feedbackType  = feedbackTypeAux;
+         
+         _firstAnalysis = false;
       }
       
       else
@@ -196,7 +211,22 @@ void SymbolStruct::analyseFeedBackAcompanhamentoTendencia(ENUM_FEEDBACK_TYPE&   
    // Varre o vetor referente as Bandas de Bollinger
    for(int i = 0; i < ArraySize(this.BollingerBands); i++)
    {
-      //this.BollingerBands[i]
+      /*
+      feedbackTypeAux   = this.BollingerBands[i].getFeedBackType();
+      
+      if(_firstAnalysis)
+      {
+         _feedbackType  = feedbackTypeAux;
+         
+         _firstAnalysis = false;
+      }
+      
+      else
+      {
+         this.sumFeedBacks(_feedbackType,
+                           feedbackTypeAux);
+      }
+      */                     
    }
    
    return;
@@ -205,7 +235,8 @@ void SymbolStruct::analyseFeedBackAcompanhamentoTendencia(ENUM_FEEDBACK_TYPE&   
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-void SymbolStruct::analyseFeedBackContraTendencia(ENUM_FEEDBACK_TYPE&   _feedbackType)
+void SymbolStruct::analyseFeedBackContraTendencia(ENUM_FEEDBACK_TYPE&   _feedbackType, 
+                                                  bool                  _firstAnalysis)
 {
    ENUM_FEEDBACK_TYPE   feedbackTypeAux;
    
@@ -215,7 +246,8 @@ void SymbolStruct::analyseFeedBackContraTendencia(ENUM_FEEDBACK_TYPE&   _feedbac
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-void SymbolStruct::analyseFeedBackVolatilidade(ENUM_FEEDBACK_TYPE&   _feedbackType)
+void SymbolStruct::analyseFeedBackVolatilidade(ENUM_FEEDBACK_TYPE&   _feedbackType,
+                                               bool                  _firstAnalysis)
 {
    ENUM_FEEDBACK_TYPE   feedbackTypeAux;
    
