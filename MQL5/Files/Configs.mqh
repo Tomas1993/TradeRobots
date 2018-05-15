@@ -39,7 +39,7 @@ ENUM_TIMEFRAMES timeFrames_Opcoes[] = {};
 ENUM_INDICATORS_ACOMPANHAMENTO_TENDENCIA  acompanhamentoTendenciaIndicators[] = {/*OBV,*/
                                                                                  /*MACD,*/
                                                                                  /*DIFUSOR_DE_FLUXO,*/
-                                                                                 /*MOVING_AVERAGE,*/
+                                                                                 MOVING_AVERAGE,
                                                                                  /*HIGH_AND_LOW,*/
                                                                                  /*BOLLINGER_BANDS,*/};
 

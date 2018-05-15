@@ -143,9 +143,13 @@ void RSI::getFeedBack(string           _symbol,
                       ENUM_TIMEFRAMES  _period,
                       datetime         _locked_bar_time)
 {
+   double currentRSI;
+
    this.sortIndicators(_symbol,
                        _period,
                        1);
+   
+   currentRSI  = this.averagePeriodArray[0];
    
    //////////////////////////////////////
    // Restrictions on position opening //
@@ -156,12 +160,11 @@ void RSI::getFeedBack(string           _symbol,
    { 
       this.feedbackType = DO_NOTHING;
    }
-   /*
+   
    //////////////////////////////
    // Check for a Golden Cross //
    //////////////////////////////
-   else if((this.shortPeriodArray[0] > this.longPeriodArray[0]) && 
-           (this.shortPeriodArray[1] < this.longPeriodArray[1]))
+   else if(currentRSI < this.RSIConfigs.getBuyPercentage())
    {
       this.feedbackType = BUY;
    }
@@ -169,12 +172,11 @@ void RSI::getFeedBack(string           _symbol,
    /////////////////////////////
    // Check for a Death Cross //
    /////////////////////////////
-   else if((this.shortPeriodArray[0] < this.longPeriodArray[0]) && 
-           (this.shortPeriodArray[1] > this.longPeriodArray[1]))
+   else if(currentRSI > this.RSIConfigs.getSellPercentage())
    {
       this.feedbackType = SELL;
    }
-   */
+   
    else 
    {
       this.feedbackType = DO_NOTHING;
