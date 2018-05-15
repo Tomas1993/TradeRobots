@@ -123,9 +123,9 @@ void SymbolStruct::setInfoFromChart(void)
 //+------------------------------------------------------------------+
 void SymbolStruct::analyseFeedBack(ENUM_FEEDBACK_TYPE&   _feedbackType)
 {
-   ENUM_FEEDBACK_TYPE   feedBackType_AcompanhamentoTendencia;  
+   ENUM_FEEDBACK_TYPE   feedBackType_AcompanhamentoTendencia;
    /*
-   ENUM_FEEDBACK_TYPE   feedBackType_ContraTendencia; 
+   ENUM_FEEDBACK_TYPE   feedBackType_ContraTendencia;
    ENUM_FEEDBACK_TYPE   feedBackType_Volatilidade;
    */
 

@@ -229,33 +229,30 @@ void Moving_Average::getFeedBack(string           _symbol,
    if(_locked_bar_time >= (this.timeArray[0]))
    { 
       this.feedbackType = DO_NOTHING;
-      
-      return;
    }
    
    //////////////////////////////
    // Check for a Golden Cross //
    //////////////////////////////
-   if((this.shortPeriodArray[0] > this.longPeriodArray[0]) && 
-      (this.shortPeriodArray[1] < this.longPeriodArray[1]))
+   else if((this.shortPeriodArray[0] > this.longPeriodArray[0]) && 
+           (this.shortPeriodArray[1] < this.longPeriodArray[1]))
    {
       this.feedbackType = BUY;
-   
-      return;
    }
    
    /////////////////////////////
    // Check for a Death Cross //
    /////////////////////////////
-   if((this.shortPeriodArray[0] < this.longPeriodArray[0]) && 
-      (this.shortPeriodArray[1] > this.longPeriodArray[1]))
+   else if((this.shortPeriodArray[0] < this.longPeriodArray[0]) && 
+           (this.shortPeriodArray[1] > this.longPeriodArray[1]))
    {
       this.feedbackType = SELL;
-      
-      return;
    }
    
-   this.feedbackType = DO_NOTHING;
+   else 
+   {
+      this.feedbackType = DO_NOTHING;
+   }
    
    return;
 }
