@@ -44,7 +44,8 @@ struct SymbolStruct
       void                    setInfoFromChart(void);
       
       void                    analyseFeedBack(
-                                 ENUM_FEEDBACK_TYPE&        _feedbackType
+                                 ENUM_FEEDBACK_TYPE&        _feedbackType,
+                                 int                        _sizeTimeFrames
                               );
       
       void                    executeDeal(
@@ -54,16 +55,19 @@ struct SymbolStruct
    private:
       void                    analyseFeedBackAcompanhamentoTendencia(
                                  ENUM_FEEDBACK_TYPE&        _feedbackType,
+                                 int                        _sizeTimeFrames,
                                  bool                       _firstAnalysis
                               );
       
       void                    analyseFeedBackContraTendencia(
                                  ENUM_FEEDBACK_TYPE&        _feedbackType,
+                                 int                        _sizeTimeFrames,
                                  bool                       _firstAnalysis
                               );
       
       void                    analyseFeedBackVolatilidade(
                                  ENUM_FEEDBACK_TYPE&        _feedbackType,
+                                 int                        _sizeTimeFrames,
                                  bool                       _firstAnalysis
                               );
       
@@ -124,7 +128,8 @@ void SymbolStruct::setInfoFromChart(void)
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-void SymbolStruct::analyseFeedBack(ENUM_FEEDBACK_TYPE&   _feedbackType)
+void SymbolStruct::analyseFeedBack(ENUM_FEEDBACK_TYPE&   _feedbackType,
+                                   int                   _sizeTimeFrames)
 {
    ENUM_FEEDBACK_TYPE   feedBackType_AcompanhamentoTendencia;
    ENUM_FEEDBACK_TYPE   feedBackType_ContraTendencia;
@@ -133,6 +138,7 @@ void SymbolStruct::analyseFeedBack(ENUM_FEEDBACK_TYPE&   _feedbackType)
    if(ArraySize(acompanhamentoTendenciaIndicators) > 0)
    {
       this.analyseFeedBackAcompanhamentoTendencia(feedBackType_AcompanhamentoTendencia,
+                                                  _sizeTimeFrames,
                                                   true);
       
       _feedbackType = feedBackType_AcompanhamentoTendencia;
@@ -143,6 +149,7 @@ void SymbolStruct::analyseFeedBack(ENUM_FEEDBACK_TYPE&   _feedbackType)
       if(ArraySize(acompanhamentoTendenciaIndicators) > 0)
       {
          this.analyseFeedBackContraTendencia(feedBackType_ContraTendencia,
+                                             _sizeTimeFrames,
                                              false);
          
          this.sumFeedBacks(_feedbackType,
@@ -152,6 +159,7 @@ void SymbolStruct::analyseFeedBack(ENUM_FEEDBACK_TYPE&   _feedbackType)
       else
       {
          this.analyseFeedBackContraTendencia(feedBackType_ContraTendencia,
+                                             _sizeTimeFrames,
                                              true);
          
          _feedbackType = feedBackType_ContraTendencia;
@@ -163,6 +171,7 @@ void SymbolStruct::analyseFeedBack(ENUM_FEEDBACK_TYPE&   _feedbackType)
       if(ArraySize(volatilityIndicators) > 0)
       {   
          this.analyseFeedBackVolatilidade(feedBackType_Volatilidade,
+                                          _sizeTimeFrames,
                                           false);
          
          this.sumFeedBacks(_feedbackType,
@@ -172,6 +181,7 @@ void SymbolStruct::analyseFeedBack(ENUM_FEEDBACK_TYPE&   _feedbackType)
       else
       {
          this.analyseFeedBackVolatilidade(feedBackType_Volatilidade,
+                                          _sizeTimeFrames,
                                           true);
          
          _feedbackType = feedBackType_Volatilidade;
@@ -185,48 +195,48 @@ void SymbolStruct::analyseFeedBack(ENUM_FEEDBACK_TYPE&   _feedbackType)
 //|                                                                  |
 //+------------------------------------------------------------------+
 void SymbolStruct::analyseFeedBackAcompanhamentoTendencia(ENUM_FEEDBACK_TYPE&   _feedbackType,
+                                                          int                   _sizeTimeFrames,
                                                           bool                  _firstAnalysis)
 {
    ENUM_FEEDBACK_TYPE   feedbackTypeAux;
 
-   // Varre o vetor referente as Medias Moveis
-   for(int i = 0; i < ArraySize(this.MovingAverage); i++)
+   // Varre o vetor de Indicadores de Acompanhamento de Tendencia
+   for(int i = 0; i < ArraySize(acompanhamentoTendenciaIndicators); i++)
    {
-      feedbackTypeAux   = this.MovingAverage[i].getFeedBackType();
-      
-      if(_firstAnalysis)
+      // Todos os indicadores possuem o mesmo tamanho (referente aos periodos de cada um)
+      for(int j = 0; j < _sizeTimeFrames; j++)
       {
-         _feedbackType  = feedbackTypeAux;
+         switch(acompanhamentoTendenciaIndicators[i])
+         {
+            case BOLLINGER_BANDS:
+               feedbackTypeAux   = this.BollingerBands[j].getFeedBackType();
+               
+               break;
+               
+            case MOVING_AVERAGE:
+               feedbackTypeAux   = this.MovingAverage[j].getFeedBackType();
+               
+               break;      
+               
+            default:
+               feedbackTypeAux   = DO_NOTHING;
+            
+               break;
+         }
          
-         _firstAnalysis = false;
-      }
-      
-      else
-      {
-         this.sumFeedBacks(_feedbackType,
-                           feedbackTypeAux);
-      }
-   }
-   
-   // Varre o vetor referente as Bandas de Bollinger
-   for(int i = 0; i < ArraySize(this.BollingerBands); i++)
-   {
-      /*
-      feedbackTypeAux   = this.BollingerBands[i].getFeedBackType();
-      
-      if(_firstAnalysis)
-      {
-         _feedbackType  = feedbackTypeAux;
+         if(_firstAnalysis)
+         {
+            _feedbackType  = feedbackTypeAux;
+            
+            _firstAnalysis = false;
+         }
          
-         _firstAnalysis = false;
+         else
+         {
+            this.sumFeedBacks(_feedbackType,
+                              feedbackTypeAux);
+         }
       }
-      
-      else
-      {
-         this.sumFeedBacks(_feedbackType,
-                           feedbackTypeAux);
-      }
-      */                     
    }
    
    return;
@@ -236,9 +246,39 @@ void SymbolStruct::analyseFeedBackAcompanhamentoTendencia(ENUM_FEEDBACK_TYPE&   
 //|                                                                  |
 //+------------------------------------------------------------------+
 void SymbolStruct::analyseFeedBackContraTendencia(ENUM_FEEDBACK_TYPE&   _feedbackType, 
+                                                  int                   _sizeTimeFrames,
                                                   bool                  _firstAnalysis)
 {
    ENUM_FEEDBACK_TYPE   feedbackTypeAux;
+   
+   // Varre o vetor de Indicadores de Acompanhamento de Tendencia
+   for(int i = 0; i < ArraySize(indicadores_ContraTendencia); i++)
+   {
+      // Todos os indicadores possuem o mesmo tamanho (referente aos periodos de cada um)
+      for(int j = 0; j < _sizeTimeFrames; j++)
+      {
+         switch(indicadores_ContraTendencia[i])
+         {
+            default:
+               feedbackTypeAux   = DO_NOTHING;
+            
+               break;
+         }
+         
+         if(_firstAnalysis)
+         {
+            _feedbackType  = feedbackTypeAux;
+            
+            _firstAnalysis = false;
+         }
+         
+         else
+         {
+            this.sumFeedBacks(_feedbackType,
+                              feedbackTypeAux);
+         }
+      }
+   }
    
    return;
 }
@@ -247,9 +287,39 @@ void SymbolStruct::analyseFeedBackContraTendencia(ENUM_FEEDBACK_TYPE&   _feedbac
 //|                                                                  |
 //+------------------------------------------------------------------+
 void SymbolStruct::analyseFeedBackVolatilidade(ENUM_FEEDBACK_TYPE&   _feedbackType,
+                                               int                   _sizeTimeFrames,
                                                bool                  _firstAnalysis)
 {
    ENUM_FEEDBACK_TYPE   feedbackTypeAux;
+   
+   // Varre o vetor de Indicadores de Acompanhamento de Tendencia
+   for(int i = 0; i < ArraySize(volatilityIndicators); i++)
+   {
+      // Todos os indicadores possuem o mesmo tamanho (referente aos periodos de cada um)
+      for(int j = 0; j < _sizeTimeFrames; j++)
+      {
+         switch(volatilityIndicators[i])
+         { 
+            default:
+               feedbackTypeAux   = DO_NOTHING;
+            
+               break;
+         }
+         
+         if(_firstAnalysis)
+         {
+            _feedbackType  = feedbackTypeAux;
+            
+            _firstAnalysis = false;
+         }
+         
+         else
+         {
+            this.sumFeedBacks(_feedbackType,
+                              feedbackTypeAux);
+         }
+      }
+   }
    
    return;
 }
