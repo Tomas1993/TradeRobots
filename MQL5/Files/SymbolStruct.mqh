@@ -18,6 +18,7 @@
 #include "Configs.mqh"
 #include "..\Files\Indicadores\BollingerBands.mqh"
 #include "..\Files\Indicadores\MovingAverage.mqh"
+#include "..\Files\Indicadores\RelativeStrengthIndex.mqh"
 
 struct SymbolStruct
 {
@@ -40,6 +41,8 @@ struct SymbolStruct
       Bollinger_Bands         BollingerBands[];
       
       Moving_Average          MovingAverage[];
+      
+      RSI                     RelativeStrengthIndex[];
       
       void                    setInfoFromChart(void);
       
@@ -259,6 +262,11 @@ void SymbolStruct::analyseFeedBackContraTendencia(ENUM_FEEDBACK_TYPE&   _feedbac
       {
          switch(indicadores_ContraTendencia[i])
          {
+            case RELATIVE_STRENGTH_INDEX:
+               feedbackTypeAux   = this.RelativeStrengthIndex[j].getFeedBackType();
+               
+               break;
+               
             default:
                feedbackTypeAux   = DO_NOTHING;
             

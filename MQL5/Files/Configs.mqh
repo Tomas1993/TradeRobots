@@ -39,10 +39,10 @@ ENUM_TIMEFRAMES timeFrames_Opcoes[] = {};
 ENUM_INDICATORS_ACOMPANHAMENTO_TENDENCIA  acompanhamentoTendenciaIndicators[] = {/*OBV,*/
                                                                                  /*MACD,*/
                                                                                  /*DIFUSOR_DE_FLUXO,*/
-                                                                                 MOVING_AVERAGE,
+                                                                                 /*MOVING_AVERAGE,*/
                                                                                  /*HIGH_AND_LOW,*/
                                                                                  /*BOLLINGER_BANDS,*/};
 
-ENUM_INDICADORES_CONTRA_TENDENCIA         indicadores_ContraTendencia[] = {/*RSI,*/};
+ENUM_INDICADORES_CONTRA_TENDENCIA         indicadores_ContraTendencia[] = {RELATIVE_STRENGTH_INDEX,};
 
 ENUM_INDICATORS_VOLATILITY                volatilityIndicators[] = {/*AVERAGE_TRUE_RANGE,*/};

@@ -22,3 +22,5 @@ input uint              iMA_MediumPeriod              = 35;                     
 input uint              iMA_LongPeriod                = 50;                      // Moving Average Long Period
 input int               iMA_Shift                     = 0;                       // Moving Average Shift
 input ENUM_MA_METHOD    iMA_Method                    = MODE_SMA;                // Moving Average Method
+
+input uint              iRSI_AveragePeriod            = 35;                      // Relative Strength Index Average Period
