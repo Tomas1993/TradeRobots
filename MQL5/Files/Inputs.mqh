@@ -24,5 +24,5 @@ input int               iMA_Shift                     = 0;                      
 input ENUM_MA_METHOD    iMA_Method                    = MODE_SMA;                // Moving Average Method
 
 input uint              iRSI_AveragePeriod            = 10;                      // Relative Strength Index Average Period
-input double            iRSI_PercentageBuy            = 30.0;                    // Relative Strength Index Buy Percentage
-input double            iRSI_PercentageSell           = 70.0;                    // Relative Strength Index Sell Percentage
+input double            iRSI_PercentageBuy            = 50.0;                    // Relative Strength Index Buy Percentage
+input double            iRSI_PercentageSell           = 30.0;                    // Relative Strength Index Sell Percentage

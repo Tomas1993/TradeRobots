@@ -161,18 +161,18 @@ void RSI::getFeedBack(string           _symbol,
       this.feedbackType = DO_NOTHING;
    }
    
-   //////////////////////////////
-   // Check for a Golden Cross //
-   //////////////////////////////
-   else if(currentRSI < this.RSIConfigs.getBuyPercentage())
+   //////////////////
+   // Go Long when //
+   //////////////////
+   else if(currentRSI > this.RSIConfigs.getBuyPercentage())
    {
       this.feedbackType = BUY;
    }
    
-   /////////////////////////////
-   // Check for a Death Cross //
-   /////////////////////////////
-   else if(currentRSI > this.RSIConfigs.getSellPercentage())
+   ////////////////////
+   // Exit Long when //
+   ////////////////////
+   else if(currentRSI < this.RSIConfigs.getSellPercentage())
    {
       this.feedbackType = SELL;
    }
