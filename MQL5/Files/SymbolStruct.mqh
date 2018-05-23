@@ -47,57 +47,61 @@ struct SymbolStruct
       void                    setInfoFromChart(void);
       
       void                    analyseFeedBack(
-                                 ENUM_FEEDBACK_TYPE&        _feedbackType,
-                                 int                        _sizeTimeFrames
+                                 ENUM_FEEDBACK_TYPE&                       _feedbackType,
+                                 int                                       _sizeTimeFrames
                               );
       
       void                    executeDeal(
-                                 ENUM_FEEDBACK_TYPE         _feedback
+                                 ENUM_FEEDBACK_TYPE                        _feedback
                               );
                                  
    private:
       void                    analyseFeedBackAcompanhamentoTendencia(
-                                 ENUM_FEEDBACK_TYPE&        _feedbackType,
-                                 int                        _sizeTimeFrames,
-                                 bool                       _firstAnalysis
+                                 ENUM_INDICATORS_ACOMPANHAMENTO_TENDENCIA _indicator,
+                                 ENUM_FEEDBACK_TYPE&                      _feedbackType,
+                                 int                                      _sizeTimeFrames,
+                                 bool                                     _firstAnalysis
                               );
       
       void                    analyseFeedBackContraTendencia(
-                                 ENUM_FEEDBACK_TYPE&        _feedbackType,
-                                 int                        _sizeTimeFrames,
-                                 bool                       _firstAnalysis
+                                 ENUM_INDICADORES_CONTRA_TENDENCIA      _indicator,
+                                 ENUM_FEEDBACK_TYPE&                    _feedbackType,
+                                 int                                    _sizeTimeFrames,
+                                 bool                                   _firstAnalysis
                               );
       
       void                    analyseFeedBackVolatilidade(
-                                 ENUM_FEEDBACK_TYPE&        _feedbackType,
-                                 int                        _sizeTimeFrames,
-                                 bool                       _firstAnalysis
+                                 ENUM_INDICATORS_VOLATILITY             _indicator,
+                                 ENUM_FEEDBACK_TYPE&                    _feedbackType,
+                                 int                                    _sizeTimeFrames,
+                                 bool                                   _firstAnalysis
                               );
       
       double                  calculateLot(
-                                 ENUM_FEEDBACK_TYPE         _feedback
+                                 ENUM_FEEDBACK_TYPE                     _feedback
                               );
       
       double                  calculatePrice(
-                                 ENUM_FEEDBACK_TYPE         _feedback
+                                 ENUM_FEEDBACK_TYPE                     _feedback
                               );
       
       double                  calculateStopLoss(
-                                 ENUM_FEEDBACK_TYPE         _feedback
+                                 ENUM_FEEDBACK_TYPE                     _feedback
                               );
       
       double                  calculateStopGain(
-                                 ENUM_FEEDBACK_TYPE         _feedback
+                                 ENUM_FEEDBACK_TYPE                     _feedback
                               );
                               
       void                    informUserTrade(
-                                 bool                       _tradeSuccessful,
-                                 CTrade&                    _trade
+                                 bool                                   _tradeSuccessful,
+                                 CTrade&                                _trade
                               );
                      
       void                    sumFeedBacks(
-                                 ENUM_FEEDBACK_TYPE&        _feedback,
-                                 ENUM_FEEDBACK_TYPE         _feedbackAux
+                                 ENUM_FEEDBACK_TYPE&                    _feedback,
+                                 FEEDBACK_OPERATIONS                    _operation,
+                                 ENUM_FEEDBACK_TYPE                     _feedbackAux
                               );                        
 };
 
@@ -134,61 +138,44 @@ void SymbolStruct::setInfoFromChart(void)
 void SymbolStruct::analyseFeedBack(ENUM_FEEDBACK_TYPE&   _feedbackType,
                                    int                   _sizeTimeFrames)
 {
-   ENUM_FEEDBACK_TYPE   feedBackType_AcompanhamentoTendencia;
-   ENUM_FEEDBACK_TYPE   feedBackType_ContraTendencia;
-   ENUM_FEEDBACK_TYPE   feedBackType_Volatilidade;
+   ENUM_FEEDBACK_TYPE   feedBackType_Aux;
 
-   if(ArraySize(acompanhamentoTendenciaIndicators) > 0)
+   this.analyseFeedBackAcompanhamentoTendencia(MOVING_AVERAGE,
+                                               feedBackType_Aux,
+                                               _sizeTimeFrames,
+                                               true);
+   
+   _feedbackType = feedBackType_Aux;
+   
+   this.analyseFeedBackContraTendencia(RELATIVE_STRENGTH_INDEX,
+                                       feedBackType_Aux,
+                                       _sizeTimeFrames,
+                                       false);
+   
+   if(_feedbackType == BUY)
    {
-      this.analyseFeedBackAcompanhamentoTendencia(feedBackType_AcompanhamentoTendencia,
-                                                  _sizeTimeFrames,
-                                                  true);
-      
-      _feedbackType = feedBackType_AcompanhamentoTendencia;
+      this.sumFeedBacks(_feedbackType,
+                        AND,
+                        feedBackType_Aux);
    }
    
-   if(ArraySize(indicadores_ContraTendencia) > 0)
-   {
-      if(ArraySize(acompanhamentoTendenciaIndicators) > 0)
-      {
-         this.analyseFeedBackContraTendencia(feedBackType_ContraTendencia,
-                                             _sizeTimeFrames,
-                                             false);
-         
-         this.sumFeedBacks(_feedbackType,
-                           feedBackType_ContraTendencia);
-      }
-      
-      else
-      {
-         this.analyseFeedBackContraTendencia(feedBackType_ContraTendencia,
-                                             _sizeTimeFrames,
-                                             true);
-         
-         _feedbackType = feedBackType_ContraTendencia;
-      }
+   else if(_feedbackType == SELL)
+   {   
+      this.sumFeedBacks(_feedbackType,
+                        AND,
+                        feedBackType_Aux);
    }
    
-   if(ArraySize(volatilityIndicators) > 0)
+   else if(feedBackType_Aux == SELL)
    {
-      if(ArraySize(volatilityIndicators) > 0)
-      {   
-         this.analyseFeedBackVolatilidade(feedBackType_Volatilidade,
-                                          _sizeTimeFrames,
-                                          false);
-         
-         this.sumFeedBacks(_feedbackType,
-                           feedBackType_Volatilidade);
-      }
-      
-      else
-      {
-         this.analyseFeedBackVolatilidade(feedBackType_Volatilidade,
-                                          _sizeTimeFrames,
-                                          true);
-         
-         _feedbackType = feedBackType_Volatilidade;
-      }
+       this.sumFeedBacks(_feedbackType,
+                        OR,
+                        feedBackType_Aux);
+   }
+   
+   else
+   {
+      _feedbackType = DO_NOTHING;
    }
 
    return;
@@ -197,11 +184,12 @@ void SymbolStruct::analyseFeedBack(ENUM_FEEDBACK_TYPE&   _feedbackType,
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-void SymbolStruct::analyseFeedBackAcompanhamentoTendencia(ENUM_FEEDBACK_TYPE&   _feedbackType,
-                                                          int                   _sizeTimeFrames,
-                                                          bool                  _firstAnalysis)
+void SymbolStruct::analyseFeedBackAcompanhamentoTendencia(ENUM_INDICATORS_ACOMPANHAMENTO_TENDENCIA _indicator,
+                                                          ENUM_FEEDBACK_TYPE&                      _feedbackType,
+                                                          int                                      _sizeTimeFrames,
+                                                          bool                                     _firstAnalysis)
 {
-   ENUM_FEEDBACK_TYPE   feedbackTypeAux;
+   ENUM_FEEDBACK_TYPE   feedbackTypeAux = DO_NOTHING;
 
    // Varre o vetor de Indicadores de Acompanhamento de Tendencia
    for(int i = 0; i < ArraySize(acompanhamentoTendenciaIndicators); i++)
@@ -209,22 +197,20 @@ void SymbolStruct::analyseFeedBackAcompanhamentoTendencia(ENUM_FEEDBACK_TYPE&   
       // Todos os indicadores possuem o mesmo tamanho (referente aos periodos de cada um)
       for(int j = 0; j < _sizeTimeFrames; j++)
       {
-         switch(acompanhamentoTendenciaIndicators[i])
+         if(acompanhamentoTendenciaIndicators[i] == _indicator)
          {
-            case BOLLINGER_BANDS:
-               feedbackTypeAux   = this.BollingerBands[j].getFeedBackType();
-               
-               break;
-               
-            case MOVING_AVERAGE:
-               feedbackTypeAux   = this.MovingAverage[j].getFeedBackType();
-               
-               break;      
-               
-            default:
-               feedbackTypeAux   = DO_NOTHING;
-            
-               break;
+            switch(_indicator)
+            {
+               case BOLLINGER_BANDS:
+                  feedbackTypeAux   = this.BollingerBands[j].getFeedBackType();
+                  
+                  break;
+                  
+               case MOVING_AVERAGE:
+                  feedbackTypeAux   = this.MovingAverage[j].getFeedBackType();
+                  
+                  break;
+            }
          }
          
          if(_firstAnalysis)
@@ -237,6 +223,7 @@ void SymbolStruct::analyseFeedBackAcompanhamentoTendencia(ENUM_FEEDBACK_TYPE&   
          else
          {
             this.sumFeedBacks(_feedbackType,
+                              AND,
                               feedbackTypeAux);
          }
       }
@@ -248,11 +235,12 @@ void SymbolStruct::analyseFeedBackAcompanhamentoTendencia(ENUM_FEEDBACK_TYPE&   
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-void SymbolStruct::analyseFeedBackContraTendencia(ENUM_FEEDBACK_TYPE&   _feedbackType, 
-                                                  int                   _sizeTimeFrames,
-                                                  bool                  _firstAnalysis)
+void SymbolStruct::analyseFeedBackContraTendencia(ENUM_INDICADORES_CONTRA_TENDENCIA _indicator,
+                                                  ENUM_FEEDBACK_TYPE&               _feedbackType,
+                                                  int                               _sizeTimeFrames,
+                                                  bool                              _firstAnalysis)
 {
-   ENUM_FEEDBACK_TYPE   feedbackTypeAux;
+   ENUM_FEEDBACK_TYPE   feedbackTypeAux = DO_NOTHING;
    
    // Varre o vetor de Indicadores de Acompanhamento de Tendencia
    for(int i = 0; i < ArraySize(indicadores_ContraTendencia); i++)
@@ -260,17 +248,15 @@ void SymbolStruct::analyseFeedBackContraTendencia(ENUM_FEEDBACK_TYPE&   _feedbac
       // Todos os indicadores possuem o mesmo tamanho (referente aos periodos de cada um)
       for(int j = 0; j < _sizeTimeFrames; j++)
       {
-         switch(indicadores_ContraTendencia[i])
+         if(indicadores_ContraTendencia[i] == _indicator)
          {
-            case RELATIVE_STRENGTH_INDEX:
-               feedbackTypeAux   = this.RelativeStrengthIndex[j].getFeedBackType();
-               
-               break;
-               
-            default:
-               feedbackTypeAux   = DO_NOTHING;
-            
-               break;
+            switch(_indicator)
+            {
+               case RELATIVE_STRENGTH_INDEX:
+                  feedbackTypeAux   = this.RelativeStrengthIndex[j].getFeedBackType();
+                  
+                  break;
+            }
          }
          
          if(_firstAnalysis)
@@ -283,6 +269,7 @@ void SymbolStruct::analyseFeedBackContraTendencia(ENUM_FEEDBACK_TYPE&   _feedbac
          else
          {
             this.sumFeedBacks(_feedbackType,
+                              AND,
                               feedbackTypeAux);
          }
       }
@@ -294,11 +281,12 @@ void SymbolStruct::analyseFeedBackContraTendencia(ENUM_FEEDBACK_TYPE&   _feedbac
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-void SymbolStruct::analyseFeedBackVolatilidade(ENUM_FEEDBACK_TYPE&   _feedbackType,
-                                               int                   _sizeTimeFrames,
-                                               bool                  _firstAnalysis)
+void SymbolStruct::analyseFeedBackVolatilidade(ENUM_INDICATORS_VOLATILITY  _indicator,
+                                               ENUM_FEEDBACK_TYPE&         _feedbackType,
+                                               int                         _sizeTimeFrames,
+                                               bool                        _firstAnalysis)
 {
-   ENUM_FEEDBACK_TYPE   feedbackTypeAux;
+   ENUM_FEEDBACK_TYPE   feedbackTypeAux = DO_NOTHING;
    
    // Varre o vetor de Indicadores de Acompanhamento de Tendencia
    for(int i = 0; i < ArraySize(volatilityIndicators); i++)
@@ -306,12 +294,11 @@ void SymbolStruct::analyseFeedBackVolatilidade(ENUM_FEEDBACK_TYPE&   _feedbackTy
       // Todos os indicadores possuem o mesmo tamanho (referente aos periodos de cada um)
       for(int j = 0; j < _sizeTimeFrames; j++)
       {
-         switch(volatilityIndicators[i])
-         { 
-            default:
-               feedbackTypeAux   = DO_NOTHING;
-            
-               break;
+         if(volatilityIndicators[i] == _indicator)
+         {
+            switch(_indicator)
+            {
+            }
          }
          
          if(_firstAnalysis)
@@ -324,6 +311,7 @@ void SymbolStruct::analyseFeedBackVolatilidade(ENUM_FEEDBACK_TYPE&   _feedbackTy
          else
          {
             this.sumFeedBacks(_feedbackType,
+                              AND,
                               feedbackTypeAux);
          }
       }
@@ -433,7 +421,7 @@ double SymbolStruct::calculatePrice(ENUM_FEEDBACK_TYPE _feedback)
    Ask_price = _symbolInfo.Ask();
    Bid_price = _symbolInfo.Bid();
    
-   return 0.0;
+   return Ask_price;
 }
 
 //+------------------------------------------------------------------+
@@ -441,7 +429,22 @@ double SymbolStruct::calculatePrice(ENUM_FEEDBACK_TYPE _feedback)
 //+------------------------------------------------------------------+
 double SymbolStruct::calculateStopLoss(ENUM_FEEDBACK_TYPE _feedback)
 {
-   return 0.0;
+   CSymbolInfo    _symbolInfo;
+   
+   double         Ask_price;
+   double         Bid_price;
+   
+   ////////////////////////
+   // Opening a Position //
+   ////////////////////////
+   
+   _symbolInfo.Name(this.symbolName);
+   _symbolInfo.RefreshRates();
+   
+   Ask_price = _symbolInfo.Ask();
+   Bid_price = _symbolInfo.Bid();
+   
+   return (Ask_price * 0.975);
 }
 
 //+------------------------------------------------------------------+
@@ -449,7 +452,22 @@ double SymbolStruct::calculateStopLoss(ENUM_FEEDBACK_TYPE _feedback)
 //+------------------------------------------------------------------+
 double SymbolStruct::calculateStopGain(ENUM_FEEDBACK_TYPE _feedback)
 {
-   return 0.0;
+   CSymbolInfo    _symbolInfo;
+   
+   double         Ask_price;
+   double         Bid_price;
+   
+   ////////////////////////
+   // Opening a Position //
+   ////////////////////////
+   
+   _symbolInfo.Name(this.symbolName);
+   _symbolInfo.RefreshRates();
+   
+   Ask_price = _symbolInfo.Ask();
+   Bid_price = _symbolInfo.Bid();
+   
+   return (Ask_price * 1.035);
 }
 
 //+------------------------------------------------------------------+
@@ -489,12 +507,37 @@ void SymbolStruct::informUserTrade(bool                     _tradeSuccessful,
 //|                                                                  |
 //+------------------------------------------------------------------+
 void SymbolStruct::sumFeedBacks(ENUM_FEEDBACK_TYPE&   _feedback,
+                                FEEDBACK_OPERATIONS   _operation,
                                 ENUM_FEEDBACK_TYPE    _feedbackAux)
 {
-   if(_feedback != _feedbackAux)
+   switch(_operation)
    {
-      _feedback = DO_NOTHING;
+      case AND:
+         if(_feedback != _feedbackAux)
+         {
+            _feedback = DO_NOTHING;
+         }
+         
+         break;
+         
+      case OR:
+         if((_feedback == SELL) && (_feedbackAux == SELL))
+         {
+            _feedback = SELL;
+         }
+         
+         /*else if((_feedback == BUY) || (_feedbackAux == BUY))
+         {
+            _feedback = BUY;
+         }*/
+         
+         else
+         {
+            _feedback = DO_NOTHING;
+         }
+         
+         break;   
    }
-   
+
    return;
 }                                

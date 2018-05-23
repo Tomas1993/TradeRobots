@@ -18,7 +18,7 @@
 //+------------------------------------------------------------------+
 
 ENUM_TIMEFRAMES timeFrames_AcoesDayTrade[] = {PERIOD_M1,
-                                              /*PERIOD_M10*/};
+                                              /*PERIOD_M30*/};
                                    
 ENUM_TIMEFRAMES timeFrames_AcoesSwingTrade[] = {PERIOD_H1,
                                                 PERIOD_H4,
@@ -43,6 +43,6 @@ ENUM_INDICATORS_ACOMPANHAMENTO_TENDENCIA  acompanhamentoTendenciaIndicators[] = 
                                                                                  /*HIGH_AND_LOW,*/
                                                                                  /*BOLLINGER_BANDS,*/};
 
-ENUM_INDICADORES_CONTRA_TENDENCIA         indicadores_ContraTendencia[] = {RELATIVE_STRENGTH_INDEX,};
+ENUM_INDICADORES_CONTRA_TENDENCIA         indicadores_ContraTendencia[] = {RELATIVE_STRENGTH_INDEX};
 
 ENUM_INDICATORS_VOLATILITY                volatilityIndicators[] = {/*AVERAGE_TRUE_RANGE,*/};
